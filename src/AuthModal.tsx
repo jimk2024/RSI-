@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   const [captchaNum1, setCaptchaNum1] = useState(0);
   const [captchaNum2, setCaptchaNum2] = useState(0);
@@ -148,25 +150,43 @@ export function AuthModal({ onClose }: AuthModalProps) {
             <label className="text-xs text-gray-400 uppercase tracking-wider block mb-1">
               {isLogin ? "登录密码" : "设置密码"}
             </label>
-            <input 
-              type="password" 
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full bg-[#1e2329] border border-[#474d57] rounded p-2 text-white outline-none focus:border-[#a855f7]"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full bg-[#1e2329] border border-[#474d57] rounded p-2 pr-10 text-white outline-none focus:border-[#a855f7]"
+              />
+              <button 
+                type="button"
+                className="absolute right-3 top-[10px] text-gray-400 hover:text-white"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           {!isLogin && (
             <div>
               <label className="text-xs text-gray-400 uppercase tracking-wider block mb-1">重复密码</label>
-              <input 
-                type="password" 
-                required
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#1e2329] border border-[#474d57] rounded p-2 text-white outline-none focus:border-[#a855f7]"
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  required
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="w-full bg-[#1e2329] border border-[#474d57] rounded p-2 pr-10 text-white outline-none focus:border-[#a855f7]"
+                />
+                <button 
+                  type="button"
+                  className="absolute right-3 top-[10px] text-gray-400 hover:text-white"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
           )}
           

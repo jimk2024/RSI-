@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/me", {
+      const res = await fetch(`/api/auth/me?_t=${Date.now()}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
