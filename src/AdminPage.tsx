@@ -108,28 +108,6 @@ export function AdminPage() {
     }
   }, [token, activeTab]);
 
-  const generateLicense = async (days: number) => {
-    try {
-      const res = await fetch("/api/sys-control/generate-license", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify({ days })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert("成功生成激活码:\n\n" + data.code);
-        fetchLicenses();
-      } else {
-        alert("生成失败: " + data.error);
-      }
-    } catch {
-      alert("网络错误");
-    }
-  };
-
   if (!token) {
     return (
       <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-4">
@@ -204,15 +182,6 @@ export function AdminPage() {
                 <div className="text-3xl text-white">{stats?.txCount || 0}</div>
               </div>
             </div>
-            
-            <div className="mt-8 bg-[#161a1e] border border-[#2b2f36] p-6 rounded-xl">
-              <h3 className="text-lg text-white font-bold mb-4">快捷操作</h3>
-              <div className="flex gap-4">
-                <button onClick={() => generateLicense(3)} className="bg-[#1e2329] border border-purple-500/50 text-purple-400 px-4 py-2 rounded hover:bg-purple-500/20">生成 3 天体验码</button>
-                <button onClick={() => generateLicense(7)} className="bg-[#1e2329] border border-purple-500/50 text-purple-400 px-4 py-2 rounded hover:bg-purple-500/20">生成 7 天体验码</button>
-                <button onClick={() => generateLicense(30)} className="bg-[#1e2329] border border-green-500/50 text-green-400 px-4 py-2 rounded hover:bg-green-500/20">生成 30 天月卡</button>
-              </div>
-            </div>
           </div>
         )}
 
@@ -252,28 +221,24 @@ export function AdminPage() {
 
         {activeTab === 'licenses' && (
           <div>
-            <h2 className="text-2xl text-white font-bold mb-6">激活码库</h2>
+            <h2 className="text-2xl text-white font-bold mb-6">激活码库 (已使用)</h2>
             <div className="bg-[#161a1e] border border-[#2b2f36] rounded-xl overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-[#1e2329] text-gray-400">
                   <tr>
-                     <th className="p-4">激活码</th>
+                     <th className="p-4">激活码(Hash)</th>
                      <th className="p-4">天数</th>
-                     <th className="p-4">状态</th>
-                     <th className="p-4">使用用户 ID</th>
-                     <th className="p-4">生成时间</th>
+                     <th className="p-4">使用者 ID</th>
+                     <th className="p-4">使用时间</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2b2f36]">
                   {licenses.map(l => (
                     <tr key={l.code} className="hover:bg-[#1e2329]/50">
                       <td className="p-4 font-mono text-purple-400">{l.code}</td>
-                      <td className="p-4">{l.days} 天</td>
-                      <td className="p-4">
-                         {l.used_by ? <span className="text-gray-500">已被使用</span> : <span className="text-green-500">未使用</span>}
-                      </td>
-                      <td className="p-4">{l.used_by || '-'}</td>
-                      <td className="p-4 text-gray-500">{new Date(l.created_at).toLocaleString()}</td>
+                      <td className="p-4 text-green-500">+{l.days} 天</td>
+                      <td className="p-4">{l.used_by}</td>
+                      <td className="p-4 text-gray-500">{new Date(l.used_at).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>

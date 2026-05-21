@@ -27,12 +27,11 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
-  CREATE TABLE IF NOT EXISTS licenses (
+  CREATE TABLE IF NOT EXISTS used_licenses (
     code TEXT PRIMARY KEY,
     days INTEGER NOT NULL,
     used_by INTEGER,
     used_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(used_by) REFERENCES users(id)
   );
   
@@ -48,4 +47,8 @@ db.exec(`
   );
 `);
 
+// Import crypto for hashing
+import crypto from 'crypto';
+
+// Removed license pre-generation as we use algorithm-based licenses now.
 export default db;

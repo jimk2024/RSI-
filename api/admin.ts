@@ -74,7 +74,7 @@ const requireAdmin = (req: any, res: any, next: any) => {
 router.get("/stats", requireAdmin, (req, res) => {
   try {
     const usersCount = (db.prepare("SELECT COUNT(*) as count FROM users").get() as any).count;
-    const licensesCount = (db.prepare("SELECT COUNT(*) as count FROM licenses").get() as any).count;
+    const licensesCount = (db.prepare("SELECT COUNT(*) as count FROM used_licenses").get() as any).count;
     const txCount = (db.prepare("SELECT COUNT(*) as count FROM transactions").get() as any).count;
     res.json({ usersCount, licensesCount, txCount });
   } catch (error) {
@@ -92,10 +92,10 @@ router.get("/users", requireAdmin, (req, res) => {
   }
 });
 
-// Get Licenses
+// Get Used Licenses
 router.get("/licenses", requireAdmin, (req, res) => {
   try {
-    const licenses = db.prepare("SELECT * FROM licenses ORDER BY created_at DESC").all();
+    const licenses = db.prepare("SELECT * FROM used_licenses ORDER BY used_at DESC").all();
     res.json({ licenses });
   } catch (error) {
     res.status(500).json({ error: "查询失败" });
@@ -109,25 +109,6 @@ router.get("/transactions", requireAdmin, (req, res) => {
     res.json({ txs });
   } catch (error) {
     res.status(500).json({ error: "查询失败" });
-  }
-});
-
-function generateCode(prefix: string = "NT") {
-  return `${prefix}-${crypto.randomBytes(4).toString('hex').toUpperCase()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-}
-
-// Generate Trial License
-router.post("/generate-license", requireAdmin, (req, res) => {
-  const { days } = req.body;
-  if (!days) return res.status(400).json({ error: "请提供有效天数" });
-  
-  try {
-    const code = generateCode(days <= 7 ? "TRIAL" : "NT");
-    const hashedCode = crypto.createHash("sha256").update(code).digest("hex");
-    db.prepare("INSERT INTO licenses (code, days) VALUES (?, ?)").run(hashedCode, days);
-    res.json({ success: true, code, days });
-  } catch (error) {
-    res.status(500).json({ error: "生成失败" });
   }
 });
 
