@@ -75,6 +75,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
         if (res.ok) {
           loginText(data.token);
           onClose();
+          window.location.hash = '#/dashboard';
         } else {
           setError(data.error || "登录失败");
         }
@@ -103,6 +104,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
         if (res.ok) {
           loginText(data.token);
           onClose();
+          window.location.hash = '#/dashboard';
         } else {
           setError(data.error || "注册失败");
           loadCaptcha();

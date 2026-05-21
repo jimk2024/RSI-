@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+    setLoading(true);
     try {
       const res = await fetch("/api/auth/me", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginText = (newToken: string) => {
     localStorage.setItem("token", newToken);
+    setLoading(true);
     setToken(newToken);
   };
 
