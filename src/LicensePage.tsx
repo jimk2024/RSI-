@@ -89,7 +89,7 @@ export function LicensePage({ onBack }: { onBack: () => void }) {
         </form>
 
         <div className="mt-8 text-center text-xs text-gray-600 border-t border-[#2b2f36] pt-6 flex flex-col gap-2">
-          <p>如需获取注册码或续订授权时长，请前往 <a href="#/purchase" className="text-[#a855f7] hover:underline">在线购买激活码</a>。</p>
+          <p>如需获取系统授权码或续订服务时长，请联系管理员获取激活码。</p>
         </div>
       </div>
     </div>

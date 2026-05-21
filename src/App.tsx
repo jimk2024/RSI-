@@ -12,7 +12,6 @@ import { DocsPage } from "./DocsPage";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { AuthModal } from "./AuthModal";
 import { LicensePage } from "./LicensePage";
-import { PurchasePage } from "./PurchasePage";
 import { AdminPage } from "./AdminPage";
 
 function AppContent() {
@@ -69,8 +68,6 @@ function AppContent() {
     return <AdminPage />;
   } else if (currentPath === '#/license') {
     content = <LicensePage onBack={() => window.location.hash = '#/'} />;
-  } else if (currentPath === '#/purchase') {
-    content = <PurchasePage onEnter={handleEnterDashboard} />;
   } else if (currentPath === '#/dashboard' && user && !user.isExpired) {
     content = <Dashboard />;
   } else if (currentPath === '#/features') {

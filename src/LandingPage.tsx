@@ -28,7 +28,6 @@ export function LandingPage({ onEnter }: LandingPageProps) {
           <a href="#/features" className="hover:text-white transition-colors">核心功能</a>
           <a href="#/technology" className="hover:text-white transition-colors">技术架构</a>
           <a href="#/docs" className="hover:text-white transition-colors">帮助文档</a>
-          <a href="#/purchase" className="hover:text-white transition-colors">购买激活码</a>
         </nav>
         <button 
           onClick={onEnter}
