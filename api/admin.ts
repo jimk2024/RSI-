@@ -34,6 +34,14 @@ router.post("/login", (req, res) => {
   }
 
   try {
+    // Environment variables override
+    if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        const token = jwt.sign({ id: 0, role: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
+        return res.json({ token, message: "登录成功 (环境变量)" });
+      }
+    }
+
     const admin: any = db.prepare("SELECT * FROM admins WHERE username = ?").get(username);
     if (!admin) {
       return res.status(401).json({ error: "用户名或密码错误" });
