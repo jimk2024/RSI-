@@ -205,19 +205,22 @@ export function OpportunitySearchPanel() {
 
   return (
     <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 flex flex-col gap-2.5 min-h-[220px] overflow-hidden">
-      <div className="flex items-center gap-2 mb-0.5 shrink-0">
-        <div className="w-2 h-5 bg-[#3b82f6] rounded-full"></div>
-        <h2 className="text-sm font-bold tracking-wider">机会搜索 (RSI 14)</h2>
+      <div className="flex items-center justify-between mb-0.5 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-5 bg-[#3b82f6] rounded-full"></div>
+          <h2 className="text-sm font-bold tracking-wider">机会搜索</h2>
+        </div>
+        <div className="text-[10px] text-gray-400 font-mono flex items-center gap-1.5 bg-[#1e2329] px-2 py-0.5 rounded border border-[#2b2f36]/80 text-right">
+          {isSearching ? (
+            <span className="flex items-center gap-1 text-[#3b82f6] font-semibold">
+              <Loader2 size={10} className="animate-spin" />
+              <span>{scannedCount}/{totalToScan}</span>
+            </span>
+          ) : (
+            <span>{Math.floor(countdown / 60)}分{(countdown % 60).toString().padStart(2, '0')}秒</span>
+          )}
+        </div>
       </div>
-
-      <button
-        onClick={startSearch}
-        disabled={isSearching}
-        className="w-full bg-[#1e2329] border border-[#3b82f6]/50 text-[#3b82f6] font-bold py-2 rounded text-xs hover:bg-[#3b82f6]/10 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-      >
-        {isSearching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-        {isSearching ? `扫描中... ${scannedCount}/${totalToScan}` : `立即扫描 (自动更新: ${Math.floor(countdown / 60)}分${(countdown % 60).toString().padStart(2, '0')}秒)`}
-      </button>
 
       {/* Strategy Indicator Tabs */}
       <div className="flex items-center bg-[#1e2329] p-0.5 rounded border border-[#2b2f36] text-[10px] select-none shrink-0">
