@@ -459,16 +459,49 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         rsi1hSeriesRef.current?.setData(r1hData);
         rsi4hSeriesRef.current?.setData(r4hData);
 
-        // Compute and draw precise explosion point markers directly on the candlestick price bar
-        const rsiMarkers: any[] = [];
-        if (candleData.length > 1 && r15mData.length === candleData.length && r1hData.length === candleData.length && r4hData.length === candleData.length) {
-          for (let idx = 1; idx < candleData.length; idx++) {
-            const mc = candleData[idx];
-            const item15m = r15mData[idx];
-            const item15mPrev = r15mData[idx - 1];
-            const item1h = r1hData[idx];
-            const item1hPrev = r1hData[idx - 1];
-            const item4h = r4hData[idx];
+        // Evaluate the breakout signal strictly on the ultra-precise 15-minute timeframe resolution (execution timeline)
+        const signalTimes = new Set<number>();
+        if (data15m && data15m.length > 0 && data1h && data1h.length > 0 && data4h && data4h.length > 0) {
+          const sorted15mBase = [...data15m].reverse();
+          const closes15mBase = sorted15mBase.map((d: any) => parseFloat(d[4]));
+          const baseCandle15mData = sorted15mBase.map((d: any) => ({
+            time: parseInt(d[0]) / 1000 as Time,
+            open: parseFloat(d[1]),
+            high: parseFloat(d[2]),
+            low: parseFloat(d[3]),
+            close: parseFloat(d[4])
+          }));
+
+          const rsi15mBaseRaw = calculateRSI(closes15mBase, rsiPeriod);
+          const r15mListBase = sorted15mBase.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi15mBaseRaw[idx] !== null ? rsi15mBaseRaw[idx] : 50
+          }));
+
+          const sorted1hBase = [...data1h].reverse();
+          const closes1hBase = sorted1hBase.map((d: any) => parseFloat(d[4]));
+          const rsi1hBaseRaw = calculateRSI(closes1hBase, rsiPeriod);
+          const r1hListBaseRaw = sorted1hBase.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi1hBaseRaw[idx] !== null ? rsi1hBaseRaw[idx] : 50
+          }));
+          const r1hDataOn15m = mapTimeframeRsiToMain(baseCandle15mData, r1hListBaseRaw);
+
+          const sorted4hBase = [...data4h].reverse();
+          const closes4hBase = sorted4hBase.map((d: any) => parseFloat(d[4]));
+          const rsi4hBaseRaw = calculateRSI(closes4hBase, rsiPeriod);
+          const r4hListBaseRaw = sorted4hBase.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi4hBaseRaw[idx] !== null ? rsi4hBaseRaw[idx] : 50
+          }));
+          const r4hDataOn15m = mapTimeframeRsiToMain(baseCandle15mData, r4hListBaseRaw);
+
+          for (let idx = 1; idx < baseCandle15mData.length; idx++) {
+            const item15m = r15mListBase[idx];
+            const item15mPrev = r15mListBase[idx - 1];
+            const item1h = r1hDataOn15m[idx];
+            const item1hPrev = r1hDataOn15m[idx - 1];
+            const item4h = r4hDataOn15m[idx];
 
             if (item15m && item15mPrev && item1h && item1hPrev && item4h) {
               const r15 = item15m.value;
@@ -500,15 +533,42 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               );
 
               if (finalExplosion) {
-                rsiMarkers.push({
-                  time: mc.time,
-                  position: 'belowBar',
-                  color: '#fbbf24', // Amber / Gold color
-                  shape: 'arrowUp',
-                  text: '🚀'
-                });
+                signalTimes.add(baseCandle15mData[idx].time as number);
               }
             }
+          }
+        }
+
+        // Map the evaluated 15M trigger timestamps to the active candle timeframe's candles
+        const rsiMarkers: any[] = [];
+        const timeframeDurationsSec: Record<string, number> = {
+          "15m": 15 * 60,
+          "1H": 60 * 60,
+          "4H": 4 * 60 * 60,
+          "1D": 24 * 60 * 60,
+        };
+        const durationSec = timeframeDurationsSec[timeframe] || (15 * 60);
+
+        for (let idx = 0; idx < candleData.length; idx++) {
+          const mc = candleData[idx];
+          const mcTime = mc.time as number;
+
+          let hasExplosion = false;
+          for (const sTime of Array.from(signalTimes)) {
+            if (sTime >= mcTime && sTime < mcTime + durationSec) {
+              hasExplosion = true;
+              break;
+            }
+          }
+
+          if (hasExplosion) {
+            rsiMarkers.push({
+              time: mc.time,
+              position: 'belowBar',
+              color: '#fbbf24', // Amber / Gold color
+              shape: 'arrowUp',
+              text: '🚀'
+            });
           }
         }
         candleSeriesRef.current?.setMarkers(rsiMarkers);
@@ -832,18 +892,18 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               <span>低: <span className="font-mono text-[#f43f5e]">{crosshairInfo.low?.toFixed(instruments[symbol] ? Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz))) : 4)}</span></span>
               <span>收: <span className="font-mono text-white">{crosshairInfo.close?.toFixed(instruments[symbol] ? Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz))) : 4)}</span></span>
               <span>量: <span className="font-mono text-white">{crosshairInfo.vol >= 1e6 ? (crosshairInfo.vol / 1e6).toFixed(2) + 'M' : crosshairInfo.vol >= 1e3 ? (crosshairInfo.vol / 1e3).toFixed(2) + 'K' : crosshairInfo.vol?.toFixed(2)}</span></span>
-              {crosshairInfo.rsi15m !== undefined && crosshairInfo.rsi15m !== null && <span>15M: <span className="font-mono text-[#38bdf8]">{crosshairInfo.rsi15m?.toFixed(2)}</span></span>}
-              {crosshairInfo.rsi1h !== undefined && crosshairInfo.rsi1h !== null && <span>1H: <span className="font-mono text-[#f59e0b]">{crosshairInfo.rsi1h?.toFixed(2)}</span></span>}
-              {crosshairInfo.rsi4h !== undefined && crosshairInfo.rsi4h !== null && <span>4H: <span className="font-mono text-[#ec4899]">{crosshairInfo.rsi4h?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi15m !== undefined && crosshairInfo.rsi15m !== null && <span className="text-[#38bdf8]">15M: <span className="font-mono font-bold">{crosshairInfo.rsi15m?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi1h !== undefined && crosshairInfo.rsi1h !== null && <span className="text-[#f59e0b]">1H: <span className="font-mono font-bold">{crosshairInfo.rsi1h?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi4h !== undefined && crosshairInfo.rsi4h !== null && <span className="text-[#ec4899]">4H: <span className="font-mono font-bold">{crosshairInfo.rsi4h?.toFixed(2)}</span></span>}
             </>
           ) : (
             <>
               <span className="text-gray-400">实时指标</span>
               {latestRsiValues ? (
                 <>
-                  <span className="ml-1">15M RSI: <span className="font-mono text-[#38bdf8]">{latestRsiValues.rsi15m.toFixed(2)}</span></span>
-                  <span className="ml-1">1H RSI: <span className="font-mono text-[#f59e0b]">{latestRsiValues.rsi1h.toFixed(2)}</span></span>
-                  <span className="ml-1">4H RSI: <span className="font-mono text-[#ec4899]">{latestRsiValues.rsi4h.toFixed(2)}</span></span>
+                  <span className="ml-1 text-[#38bdf8]">15M: <span className="font-mono font-bold">{latestRsiValues.rsi15m.toFixed(2)}</span></span>
+                  <span className="ml-1 text-[#f59e0b]">1H: <span className="font-mono font-bold">{latestRsiValues.rsi1h.toFixed(2)}</span></span>
+                  <span className="ml-1 text-[#ec4899]">4H: <span className="font-mono font-bold">{latestRsiValues.rsi4h.toFixed(2)}</span></span>
                 </>
               ) : (
                 <span className="text-gray-500">计算中...</span>
@@ -865,26 +925,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         )}
 
         <div className="flex-1 relative w-full h-full" ref={chartContainerRef}></div>
-
-        {/* RSI Color Legend Overlay always visible */}
-        <div className="absolute bottom-[28px] left-2 z-10 bg-[#0b0e11]/90 backdrop-blur-sm border border-[#2b2f36] px-2 py-1 rounded text-[9px] text-gray-400 font-medium pointer-events-none flex items-center gap-2.5 shadow-lg select-none">
-          <span className="text-gray-500 font-bold border-r border-[#2b2f36] pr-2">RSI指标多维同框</span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]"></span>
-            <span className="text-[#38bdf8] font-semibold">15M (快)</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
-            <span className="text-[#f59e0b] font-semibold">1H (中)</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ec4899]"></span>
-            <span className="text-[#ec4899] font-semibold">4H (慢)</span>
-          </span>
-          <span className="flex items-center gap-1 border-l border-[#2b2f36] pl-2">
-            <span className="text-[#fbbf24] font-bold">🚀 起爆信号</span>
-          </span>
-        </div>
       </div>
 
       {/* Footer - Trading */}
