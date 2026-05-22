@@ -2,20 +2,44 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-let dbPath = path.join(process.cwd(), 'data');
-try {
-  if (!fs.existsSync(dbPath)) {
-    fs.mkdirSync(dbPath, { recursive: true });
-  }
-  fs.accessSync(dbPath, fs.constants.W_OK);
-} catch (e) {
-  dbPath = '/tmp/data';
-  if (!fs.existsSync(dbPath)) {
-    fs.mkdirSync(dbPath, { recursive: true });
-  }
-}
+let db: Database.Database;
+const customDbPath = process.env.DATABASE_PATH;
 
-const db = new Database(path.join(dbPath, 'app.db'));
+if (customDbPath) {
+  const absoluteDbPath = path.isAbsolute(customDbPath) 
+    ? customDbPath 
+    : path.join(process.cwd(), customDbPath);
+  
+  const dbDir = path.dirname(absoluteDbPath);
+  try {
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    db = new Database(absoluteDbPath);
+  } catch (e) {
+    console.error(`Failed to initialize database at specified DATABASE_PATH (${absoluteDbPath}):`, e);
+    // Fallback if custom path fails
+    let fallbackPath = '/tmp/data';
+    if (!fs.existsSync(fallbackPath)) {
+      fs.mkdirSync(fallbackPath, { recursive: true });
+    }
+    db = new Database(path.join(fallbackPath, 'app.db'));
+  }
+} else {
+  let dbPath = path.join(process.cwd(), 'data');
+  try {
+    if (!fs.existsSync(dbPath)) {
+      fs.mkdirSync(dbPath, { recursive: true });
+    }
+    fs.accessSync(dbPath, fs.constants.W_OK);
+  } catch (e) {
+    dbPath = '/tmp/data';
+    if (!fs.existsSync(dbPath)) {
+      fs.mkdirSync(dbPath, { recursive: true });
+    }
+  }
+  db = new Database(path.join(dbPath, 'app.db'));
+}
 
 // Initialize database schema for users and licenses
 db.exec(`

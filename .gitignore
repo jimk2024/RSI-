@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local SQLite databases and database folder
+data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
