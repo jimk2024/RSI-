@@ -27,6 +27,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   const [vol24h, setVol24h] = useState<number | null>(null);
   const [crosshairInfo, setCrosshairInfo] = useState<any>(null);
   const [flashStatus, setFlashStatus] = useState<"none" | "red" | "green">("none");
+  const [latestRsiValues, setLatestRsiValues] = useState<{ rsi15m: number; rsi1h: number; rsi4h: number } | null>(null);
   
   const [timeframe, setTimeframe] = useState("15m");
   const [showEma50, setShowEma50] = useState(false);
@@ -64,7 +65,9 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const ema50SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema200SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
-  const rsiSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const rsi15mSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const rsi1hSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const rsi4hSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const srLinesRef = useRef<{ support: IPriceLine; resistance: IPriceLine } | null>(null);
   const rsiLinesRef = useRef<{ ob: IPriceLine; os: IPriceLine } | null>(null);
   const posLinesRef = useRef<IPriceLine[]>([]);
@@ -133,15 +136,29 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     });
     ema200SeriesRef.current = ema200Series;
 
-    const rsiSeries = chart.addLineSeries({
-      color: "#a855f7",
+    const rsi15mSeries = chart.addLineSeries({
+      color: "#38bdf8", // Sky blue for 15M
       lineWidth: 2,
       priceScaleId: "rsi",
     });
-    rsiSeries.priceScale().applyOptions({
+    rsi15mSeries.priceScale().applyOptions({
       scaleMargins: { top: 0.85, bottom: 0 },
     });
-    rsiSeriesRef.current = rsiSeries;
+    rsi15mSeriesRef.current = rsi15mSeries;
+
+    const rsi1hSeries = chart.addLineSeries({
+      color: "#f59e0b", // Amber for 1H
+      lineWidth: 2,
+      priceScaleId: "rsi",
+    });
+    rsi1hSeriesRef.current = rsi1hSeries;
+
+    const rsi4hSeries = chart.addLineSeries({
+      color: "#ec4899", // Pink/Hotpink for 4H
+      lineWidth: 2,
+      priceScaleId: "rsi",
+    });
+    rsi4hSeriesRef.current = rsi4hSeries;
 
     const handleResize = () => {
       if (chartContainerRef.current) {
@@ -167,10 +184,12 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     container.addEventListener('wheel', markUserInteracted, { passive: true });
 
     chart.subscribeCrosshairMove((param) => {
-      if (param.time && candleSeriesRef.current && volumeSeriesRef.current && rsiSeriesRef.current) {
+      if (param.time && candleSeriesRef.current && volumeSeriesRef.current && rsi15mSeriesRef.current && rsi1hSeriesRef.current && rsi4hSeriesRef.current) {
         const data = param.seriesData.get(candleSeriesRef.current);
         const volData = param.seriesData.get(volumeSeriesRef.current);
-        const rsiData = param.seriesData.get(rsiSeriesRef.current);
+        const rsi15mData = param.seriesData.get(rsi15mSeriesRef.current);
+        const rsi1hData = param.seriesData.get(rsi1hSeriesRef.current);
+        const rsi4hData = param.seriesData.get(rsi4hSeriesRef.current);
         if (data) {
           setCrosshairInfo({
             time: param.time as number,
@@ -179,7 +198,9 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
             low: (data as any).low,
             close: (data as any).close,
             vol: (volData as any)?.value,
-            rsi: (rsiData as any)?.value
+            rsi15m: (rsi15mData as any)?.value,
+            rsi1h: (rsi1hData as any)?.value,
+            rsi4h: (rsi4hData as any)?.value
           });
           return;
         }
@@ -322,12 +343,25 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       try {
         await new Promise(r => setTimeout(r, Math.random() * 200 + 100)); // 100-300ms random offset to stagger multiple widgets slightly
         const limit = isMaximized ? 300 : 100;
-        const data = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=${timeframe}&limit=${limit}`);
-        if (!active || !data) return;
+        
+        // Parallelized fetches for main timeframe, 15m, 1H, 4H to maintain constant synchrony
+        const mainPromise = okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=${timeframe}&limit=${limit}`);
+        const fetch15m = timeframe === "15m" ? mainPromise : okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=15m&limit=${limit}`);
+        const fetch1h  = timeframe === "1H"  ? mainPromise : okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=${limit}`);
+        const fetch4h  = timeframe === "4H"  ? mainPromise : okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=${limit}`);
+
+        const [mainData, data15m, data1h, data4h] = await Promise.all([
+          mainPromise,
+          fetch15m,
+          fetch1h,
+          fetch4h
+        ]);
+
+        if (!active || !mainData) return;
 
         // OKX format: [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm]
         // Ordered newest first. We need oldest first.
-        const sortedData = [...data].reverse();
+        const sortedData = [...mainData].reverse();
 
         const closes: number[] = [];
         const candleData = sortedData.map((d: any) => {
@@ -353,7 +387,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
                   try {
                     return Number(price).toFixed(precision);
                   } catch(e) {
-                    return price.toString();
+                     return price.toString();
                   }
                 }
               }
@@ -384,36 +418,76 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         })).filter(r => r.value !== null);
         ema200SeriesRef.current?.setData(ema200Data);
 
-        const rsiValues = calculateRSI(closes, rsiPeriod);
-        const rData = sortedData.map((d: any, idx) => ({
-          time: parseInt(d[0]) / 1000 as Time,
-          value: rsiValues[idx] !== null ? rsiValues[idx] : 50
-        })).filter(r => r.value !== null);
+        // RSI 15M, 1H, 4H Calculations and Timeframe Synchronization
+        let r15mData: { time: Time, value: number }[] = [];
+        if (data15m && data15m.length > 0) {
+          const sorted15m = [...data15m].reverse();
+          const closes15m = sorted15m.map((d: any) => parseFloat(d[4]));
+          const rsi15mRaw = calculateRSI(closes15m, rsiPeriod);
+          const rawList = sorted15m.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi15mRaw[idx] !== null ? rsi15mRaw[idx] : 50
+          }));
+          r15mData = mapTimeframeRsiToMain(candleData, rawList);
+        }
 
-        if (rData.length > 0) {
-          const lastRsi = rData[rData.length - 1].value;
-          if (lastRsi >= rsiOverbought) {
+        let r1hData: { time: Time, value: number }[] = [];
+        if (data1h && data1h.length > 0) {
+          const sorted1h = [...data1h].reverse();
+          const closes1h = sorted1h.map((d: any) => parseFloat(d[4]));
+          const rsi1hRaw = calculateRSI(closes1h, rsiPeriod);
+          const rawList = sorted1h.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi1hRaw[idx] !== null ? rsi1hRaw[idx] : 50
+          }));
+          r1hData = mapTimeframeRsiToMain(candleData, rawList);
+        }
+
+        let r4hData: { time: Time, value: number }[] = [];
+        if (data4h && data4h.length > 0) {
+          const sorted4h = [...data4h].reverse();
+          const closes4h = sorted4h.map((d: any) => parseFloat(d[4]));
+          const rsi4hRaw = calculateRSI(closes4h, rsiPeriod);
+          const rawList = sorted4h.map((d: any, idx) => ({
+            timeSec: parseInt(d[0]) / 1000,
+            value: rsi4hRaw[idx] !== null ? rsi4hRaw[idx] : 50
+          }));
+          r4hData = mapTimeframeRsiToMain(candleData, rawList);
+        }
+
+        rsi15mSeriesRef.current?.setData(r15mData);
+        rsi1hSeriesRef.current?.setData(r1hData);
+        rsi4hSeriesRef.current?.setData(r4hData);
+
+        // Analyze and extract latest values for resonance mapping
+        if (r15mData.length > 0 && r1hData.length > 0 && r4hData.length > 0) {
+          const l15m = r15mData[r15mData.length - 1].value;
+          const l1h = r1hData[r1hData.length - 1].value;
+          const l4h = r4hData[r4hData.length - 1].value;
+          setLatestRsiValues({ rsi15m: l15m, rsi1h: l1h, rsi4h: l4h });
+
+          // Determine resonance state for flashing effect
+          if (l15m >= rsiOverbought && l1h >= rsiOverbought && l4h >= rsiOverbought) {
             setFlashStatus("red");
-          } else if (lastRsi <= rsiOversold) {
+          } else if (l15m <= rsiOversold && l1h <= rsiOversold && l4h <= rsiOversold) {
             setFlashStatus("green");
           } else {
             setFlashStatus("none");
           }
         }
 
-        rsiSeriesRef.current?.setData(rData);
-
-        if (rsiSeriesRef.current) {
+        // Draw Overbought/Oversold dash limits on rsi15m
+        if (rsi15mSeriesRef.current) {
           if (!rsiLinesRef.current) {
             rsiLinesRef.current = {
-              ob: rsiSeriesRef.current.createPriceLine({
+              ob: rsi15mSeriesRef.current.createPriceLine({
                 price: rsiOverbought,
                 color: 'rgba(244, 63, 94, 0.5)',
                 lineStyle: LineStyle.Dashed,
                 lineWidth: 1,
                 axisLabelVisible: false,
               }),
-              os: rsiSeriesRef.current.createPriceLine({
+              os: rsi15mSeriesRef.current.createPriceLine({
                 price: rsiOversold,
                 color: 'rgba(16, 185, 129, 0.5)',
                 lineStyle: LineStyle.Dashed,
@@ -696,7 +770,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       {/* Chart */}
       <div className="flex-1 bg-[#0b0e11] rounded flex flex-col overflow-hidden relative min-h-0">
         <div className="absolute top-1 left-2 z-10 text-[10px] space-x-2 text-gray-300 pointer-events-none flex flex-wrap max-w-full">
-          {crosshairInfo && crosshairInfo.close !== undefined && (
+          {crosshairInfo && crosshairInfo.close !== undefined ? (
             <>
               <span className="text-gray-400">{new Date(crosshairInfo.time * 1000).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
               <span>开: <span className="font-mono text-white">{crosshairInfo.open?.toFixed(instruments[symbol] ? Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz))) : 4)}</span></span>
@@ -704,10 +778,38 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               <span>低: <span className="font-mono text-[#f43f5e]">{crosshairInfo.low?.toFixed(instruments[symbol] ? Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz))) : 4)}</span></span>
               <span>收: <span className="font-mono text-white">{crosshairInfo.close?.toFixed(instruments[symbol] ? Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz))) : 4)}</span></span>
               <span>量: <span className="font-mono text-white">{crosshairInfo.vol >= 1e6 ? (crosshairInfo.vol / 1e6).toFixed(2) + 'M' : crosshairInfo.vol >= 1e3 ? (crosshairInfo.vol / 1e3).toFixed(2) + 'K' : crosshairInfo.vol?.toFixed(2)}</span></span>
-              {crosshairInfo.rsi !== undefined && crosshairInfo.rsi !== null && <span>RSI: <span className="font-mono text-[#a855f7]">{crosshairInfo.rsi?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi15m !== undefined && crosshairInfo.rsi15m !== null && <span>15M: <span className="font-mono text-[#38bdf8]">{crosshairInfo.rsi15m?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi1h !== undefined && crosshairInfo.rsi1h !== null && <span>1H: <span className="font-mono text-[#f59e0b]">{crosshairInfo.rsi1h?.toFixed(2)}</span></span>}
+              {crosshairInfo.rsi4h !== undefined && crosshairInfo.rsi4h !== null && <span>4H: <span className="font-mono text-[#ec4899]">{crosshairInfo.rsi4h?.toFixed(2)}</span></span>}
+            </>
+          ) : (
+            <>
+              <span className="text-gray-400">实时指标</span>
+              {latestRsiValues ? (
+                <>
+                  <span className="ml-1">15M RSI: <span className="font-mono text-[#38bdf8]">{latestRsiValues.rsi15m.toFixed(2)}</span></span>
+                  <span className="ml-1">1H RSI: <span className="font-mono text-[#f59e0b]">{latestRsiValues.rsi1h.toFixed(2)}</span></span>
+                  <span className="ml-1">4H RSI: <span className="font-mono text-[#ec4899]">{latestRsiValues.rsi4h.toFixed(2)}</span></span>
+                </>
+              ) : (
+                <span className="text-gray-500">计算中...</span>
+              )}
             </>
           )}
         </div>
+
+        {/* Multi-Timeframe Resonance Banner Indicators */}
+        {latestRsiValues && latestRsiValues.rsi15m >= rsiOverbought && latestRsiValues.rsi1h >= rsiOverbought && latestRsiValues.rsi4h >= rsiOverbought && (
+          <div className="absolute top-1 right-2 z-10 bg-[#f43f5e]/80 border border-[#f43f5e] text-white text-[9px] px-2 py-[2px] rounded font-bold animate-pulse shadow-md pointer-events-none">
+            ⚠️ 三维空头共振 (超买/空头区域)
+          </div>
+        )}
+        {latestRsiValues && latestRsiValues.rsi15m <= rsiOversold && latestRsiValues.rsi1h <= rsiOversold && latestRsiValues.rsi4h <= rsiOversold && (
+          <div className="absolute top-1 right-2 z-10 bg-[#10b981]/80 border border-[#10b981] text-white text-[9px] px-2 py-[2px] rounded font-bold animate-pulse shadow-md pointer-events-none">
+            🔥 三维多头共振 (超卖/多头爆发)
+          </div>
+        )}
+
         <div className="flex-1 relative w-full h-full" ref={chartContainerRef}></div>
       </div>
 
@@ -722,4 +824,33 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       </div>
     </div>
   );
+}
+
+// Helper to scale/align other timeframe values with primary candle timeline timestamps
+function mapTimeframeRsiToMain(
+  mainCandles: { time: Time }[],
+  tfList: { timeSec: number; value: number }[]
+) {
+  if (tfList.length === 0) return [];
+  
+  const sortedTfList = [...tfList].sort((a, b) => a.timeSec - b.timeSec);
+  
+  return mainCandles.map(mc => {
+    const mainTime = mc.time as number;
+    let matchedValue = sortedTfList[0].value;
+    
+    // Scan ascending for the most recent observation matching mainTime
+    for (let i = 0; i < sortedTfList.length; i++) {
+      if (sortedTfList[i].timeSec <= mainTime) {
+        matchedValue = sortedTfList[i].value;
+      } else {
+        break;
+      }
+    }
+    
+    return {
+      time: mc.time,
+      value: matchedValue
+    };
+  });
 }
