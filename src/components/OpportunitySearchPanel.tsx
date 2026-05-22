@@ -283,32 +283,32 @@ export function OpportunitySearchPanel() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
+      <div className="flex-1 overflow-y-auto space-y-2.5 pr-0.5">
         {!isSearching && filteredOpportunities.length === 0 && (
-          <div className="text-xs text-gray-500 text-center py-6">无符合当前条件的交易对</div>
+          <div className="text-sm text-gray-500 text-center py-6">无符合当前条件的交易对</div>
         )}
         
         {filteredOpportunities.map((opp, i) => (
           <div 
             key={i} 
             onClick={() => setOverrideChartSymbol({ id: "chart-0", symbol: opp.symbol })}
-            className="flex items-center justify-between p-2 rounded bg-[#1e2329] hover:bg-[#2b2f36] cursor-pointer border border-[#2b2f36] hover:border-[#3b82f6]/30 transition-colors"
+            className="flex items-center justify-between p-3 rounded bg-[#1e2329] hover:bg-[#2b2f36] cursor-pointer border border-[#2b2f36] hover:border-[#3b82f6]/30 transition-colors"
           >
-            <div className="flex flex-col gap-1 flex-1 min-w-0 pr-2">
-              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-                <span className="text-xs font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
+            <div className="flex flex-col gap-2 flex-1 min-w-0 pr-2">
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <span className="text-sm font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
                 {opp.type === "explosion" && (
-                  <span className="text-[9px] font-bold text-yellow-400 flex items-center gap-0.5 bg-yellow-950/50 border border-yellow-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
-                    <Sparkles size={8} className="text-yellow-400" /> 共振起爆
+                  <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1 bg-yellow-950/50 border border-yellow-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
+                    <Sparkles size={10} className="text-yellow-400" /> 共振起爆
                   </span>
                 )}
                 {opp.type === "extreme_sell" && (
-                  <span className="text-[9px] font-bold text-red-400 flex items-center gap-0.5 bg-red-950/50 border border-red-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
+                  <span className="text-[10px] font-bold text-red-400 flex items-center gap-1 bg-red-950/50 border border-red-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
                     📉 极值超买
                   </span>
                 )}
                 {opp.type === "extreme_buy" && (
-                  <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-0.5 bg-emerald-950/50 border border-emerald-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
+                  <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-950/50 border border-emerald-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
                     📈 极值超卖
                   </span>
                 )}
@@ -316,32 +316,32 @@ export function OpportunitySearchPanel() {
               
               {/* Show auxiliary parameters for live trading verification */}
               {opp.type === "explosion" && (
-                <div className="flex flex-wrap gap-1 mt-0.5">
+                <div className="flex flex-wrap gap-1.5 mt-0.5">
                   {/* Volume surge check */}
                   {opp.volSurgeMultiplier !== undefined && (
-                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
                       opp.volSurgeMultiplier >= 1.3 
                         ? "bg-amber-950/65 border border-amber-800/60 text-amber-300"
                         : "bg-gray-800 border border-gray-700/80 text-gray-400"
                     }`}>
-                      <Zap size={7} />
+                      <Zap size={10} />
                       放量 {opp.volSurgeMultiplier.toFixed(1)}x
                     </span>
                   )}
                   {/* EMA20 Support check */}
                   {opp.aboveEma20 !== undefined && (
-                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
                       opp.aboveEma20 
                         ? "bg-sky-950/65 border border-sky-800/60 text-sky-300"
                         : "bg-rose-950/20 border border-rose-900/30 text-rose-300"
                     }`}>
-                      <TrendingUp size={7} />
+                      <TrendingUp size={10} />
                       {opp.aboveEma20 ? "EMA20上" : "EMA压制"}
                     </span>
                   )}
                   {/* Bullish Candle check */}
                   {opp.isBullishCandle !== undefined && (
-                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
                       opp.isBullishCandle 
                         ? "bg-emerald-950/60 border border-emerald-800/60 text-emerald-300"
                         : "bg-rose-950/40 border border-rose-800/40 text-rose-400"
@@ -352,22 +352,6 @@ export function OpportunitySearchPanel() {
                 </div>
               )}
             </div>
-
-             {/* Timeframe values color-coded exactly to chart colors */}
-             <div className="flex flex-col items-end gap-0.5">
-               <div className="text-[10px] font-mono leading-none">
-                 <span className="text-gray-500">15M:</span>{" "}
-                 <span className="text-[#38bdf8] font-bold">{opp.rsi.toFixed(1)}</span>
-               </div>
-               <div className="text-[10px] font-mono leading-none">
-                 <span className="text-gray-500">1H:</span>{" "}
-                 <span className="text-[#f59e0b] font-bold">{opp.rsi1h.toFixed(1)}</span>
-               </div>
-               <div className="text-[10px] font-mono leading-none">
-                 <span className="text-gray-500">4H:</span>{" "}
-                 <span className="text-[#ec4899] font-bold">{opp.rsi4h.toFixed(1)}</span>
-               </div>
-             </div>
           </div>
         ))}
       </div>
