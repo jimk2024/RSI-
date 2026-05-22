@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../AppContext";
 import { okxPublicFetch } from "../lib/api";
-import { calculateRSI } from "../lib/indicators";
-import { Search, Loader2 } from "lucide-react";
+import { calculateRSI, calculateEMA } from "../lib/indicators";
+import { Search, Loader2, Sparkles, TrendingUp, Zap } from "lucide-react";
 
 interface Opportunity {
   symbol: string;
@@ -11,6 +11,9 @@ interface Opportunity {
   rsi4h: number;
   type: "extreme_buy" | "extreme_sell" | "explosion";
   typeLabel: string;
+  volSurgeMultiplier?: number;
+  aboveEma20?: boolean;
+  isBullishCandle?: boolean;
 }
 
 export function OpportunitySearchPanel() {
@@ -74,10 +77,16 @@ export function OpportunitySearchPanel() {
           setScannedCount((prev) => prev + 1);
           
           if (data15m && data15m.length > 0) {
-            const closes15m = [...data15m].reverse().map((d: any) => parseFloat(d[4]));
+            const sorted15m = [...data15m].reverse();
+            const closes15m = sorted15m.map((d: any) => parseFloat(d[4]));
+            const opens15m = sorted15m.map((d: any) => parseFloat(d[1]));
+            const vols15m = sorted15m.map((d: any) => parseFloat(d[5]));
             const rsi15mList = calculateRSI(closes15m, 14);
-            const r15 = rsi15mList[rsi15mList.length - 1];
-            const r15_prev = rsi15mList[rsi15mList.length - 2];
+            const ema20List = calculateEMA(closes15m, 20);
+
+            const latestIdx = closes15m.length - 1;
+            const r15 = rsi15mList[latestIdx];
+            const r15_prev = rsi15mList[latestIdx - 1];
             
             if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null) {
               const isExtreme = r15 > 70 || r15 < 30;
@@ -131,6 +140,24 @@ export function OpportunitySearchPanel() {
                             (r4h - r15_prev >= 8)
                           );
 
+                          // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
+                          const currentClose = closes15m[latestIdx];
+                          const currentOpen = opens15m[latestIdx];
+                          const currentVol = vols15m[latestIdx];
+                          
+                          let sumVol = 0;
+                          let count = 0;
+                          for (let i = Math.max(0, latestIdx - 10); i < latestIdx; i++) {
+                            sumVol += vols15m[i];
+                            count++;
+                          }
+                          const avgVol = count > 0 ? (sumVol / count) : 0;
+                          const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
+                          
+                          const ema20Val = ema20List[latestIdx];
+                          const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
+                          const isBullishCandle = currentClose > currentOpen;
+
                           if (finalExtreme) {
                             opps.push({
                               symbol,
@@ -138,7 +165,10 @@ export function OpportunitySearchPanel() {
                               rsi1h: r1h,
                               rsi4h: r4h,
                               type: r15 > 70 ? "extreme_sell" : "extreme_buy",
-                              typeLabel: r15 > 70 ? "极值超买" : "极值超卖"
+                              typeLabel: r15 > 70 ? "极值超买" : "极值超卖",
+                              volSurgeMultiplier,
+                              aboveEma20,
+                              isBullishCandle
                             });
                             // Sort with extreme levels first
                             setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
@@ -149,7 +179,10 @@ export function OpportunitySearchPanel() {
                               rsi1h: r1h,
                               rsi4h: r4h,
                               type: "explosion",
-                              typeLabel: "共振起爆"
+                              typeLabel: "共振起爆",
+                              volSurgeMultiplier,
+                              aboveEma20,
+                              isBullishCandle
                             });
                             setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
                           }
@@ -261,22 +294,62 @@ export function OpportunitySearchPanel() {
             onClick={() => setOverrideChartSymbol({ id: "chart-0", symbol: opp.symbol })}
             className="flex items-center justify-between p-2 rounded bg-[#1e2329] hover:bg-[#2b2f36] cursor-pointer border border-[#2b2f36] hover:border-[#3b82f6]/30 transition-colors"
           >
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-bold text-gray-300">{opp.symbol.replace("-SWAP", "")}</span>
+            <div className="flex flex-col gap-1 w-[70px] sm:w-auto flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                <span className="text-xs font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
+                {opp.type === "explosion" && (
+                  <span className="text-[9px] font-bold text-yellow-400 flex items-center gap-0.5 bg-yellow-950/50 border border-yellow-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
+                    <Sparkles size={8} className="text-yellow-400" /> 共振起爆
+                  </span>
+                )}
+                {opp.type === "extreme_sell" && (
+                  <span className="text-[9px] font-bold text-red-400 flex items-center gap-0.5 bg-red-950/50 border border-red-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
+                    📉 极值超买
+                  </span>
+                )}
+                {opp.type === "extreme_buy" && (
+                  <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-0.5 bg-emerald-950/50 border border-emerald-800/40 px-1 py-[0.5px] rounded select-none shrink-0">
+                    📈 极值超卖
+                  </span>
+                )}
+              </div>
+              
+              {/* Show auxiliary parameters for live trading verification */}
               {opp.type === "explosion" && (
-                <span className="text-[9px] font-semibold text-yellow-400 bg-yellow-950/40 border border-yellow-800/30 px-1 py-[0.5px] rounded w-fit">
-                  🚀 起爆异动 (金叉合力)
-                </span>
-              )}
-              {opp.type === "extreme_sell" && (
-                <span className="text-[9px] font-semibold text-red-400 bg-red-950/40 border border-red-800/30 px-1 py-[0.5px] rounded w-fit">
-                  📉 三维极值 (超买回调)
-                </span>
-              )}
-              {opp.type === "extreme_buy" && (
-                <span className="text-[9px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-800/30 px-1 py-[0.5px] rounded w-fit">
-                  📈 三维极值 (超卖反弹)
-                </span>
+                <div className="flex flex-wrap gap-1 mt-0.5">
+                  {/* Volume surge check */}
+                  {opp.volSurgeMultiplier !== undefined && (
+                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                      opp.volSurgeMultiplier >= 1.3 
+                        ? "bg-amber-950/65 border border-amber-800/60 text-amber-300"
+                        : "bg-gray-800 border border-gray-700/80 text-gray-400"
+                    }`}>
+                      <Zap size={7} />
+                      放量 {opp.volSurgeMultiplier.toFixed(1)}x
+                    </span>
+                  )}
+                  {/* EMA20 Support check */}
+                  {opp.aboveEma20 !== undefined && (
+                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                      opp.aboveEma20 
+                        ? "bg-sky-950/65 border border-sky-800/60 text-sky-300"
+                        : "bg-rose-950/20 border border-rose-900/30 text-rose-300"
+                    }`}>
+                      <TrendingUp size={7} />
+                      {opp.aboveEma20 ? "EMA20上" : "EMA压制"}
+                    </span>
+                  )}
+                  {/* Bullish Candle check */}
+                  {opp.isBullishCandle !== undefined && (
+                    <span className={`text-[8px] leading-none px-1 py-[1.5px] rounded font-semibold flex items-center gap-0.5 ${
+                      opp.isBullishCandle 
+                        ? "bg-emerald-950/60 border border-emerald-800/60 text-emerald-300"
+                        : "bg-rose-950/40 border border-rose-800/40 text-rose-400"
+                    }`}>
+                      {opp.isBullishCandle ? "阳线支持" : "阴线休整"}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 

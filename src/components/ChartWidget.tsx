@@ -472,10 +472,12 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
             open: parseFloat(d[1]),
             high: parseFloat(d[2]),
             low: parseFloat(d[3]),
-            close: parseFloat(d[4])
+            close: parseFloat(d[4]),
+            volume: parseFloat(d[5])
           }));
 
           const rsi15mBaseRaw = calculateRSI(closes15mBase, rsiPeriod);
+          const ema20BaseList = calculateEMA(closes15mBase, 20);
           const r15mListBase = sorted15mBase.map((d: any, idx) => ({
             timeSec: parseInt(d[0]) / 1000,
             value: rsi15mBaseRaw[idx] !== null ? rsi15mBaseRaw[idx] : 50
@@ -536,7 +538,28 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               );
 
               if (finalExplosion) {
-                signalTimes.add(baseCandle15mData[idx].time as number);
+                // Calculate volume surge
+                const currentVol = baseCandle15mData[idx].volume;
+                let sumVol = 0;
+                let count = 0;
+                for (let i = Math.max(0, idx - 10); i < idx; i++) {
+                  sumVol += baseCandle15mData[i].volume;
+                  count++;
+                }
+                const avgVol = count > 0 ? (sumVol / count) : 0;
+                const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
+                
+                const ema20Val = ema20BaseList[idx];
+                const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (baseCandle15mData[idx].close >= ema20Val) : true;
+                const isBullishCandle = baseCandle15mData[idx].close > baseCandle15mData[idx].open;
+
+                // For the signal to trigger, require reasonable threshold:
+                // - Bullish candle to prevent short-squeeze hairpins
+                // - Above EMA20 to prevent buying a dead cat bounce under strong downward trend
+                // - Vol surge multiplier >= 1.25
+                if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
+                  signalTimes.add(baseCandle15mData[idx].time as number);
+                }
               }
             }
           }
