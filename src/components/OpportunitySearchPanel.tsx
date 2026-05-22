@@ -81,8 +81,15 @@ export function OpportunitySearchPanel() {
             
             if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null) {
               const isExtreme = r15 > 70 || r15 < 30;
-              // 15M is between 40-65 and has a clear upward turn of >1.0 RSI point
-              const isExplosionPrep = r15 >= 40 && r15 <= 65 && r15 > r15_prev + 0.8;
+              // 精准起爆瞬间：
+              // 1. 15M (快线) 处于 45-61 刚刚起跑或交叉区间，不能超过 61 防止已经高度拉升/追高
+              // 2. 15M 之前处于走平及洗盘低层 (r15_prev <= 53)
+              // 3. 15M 出现大角度上攻拐头 (RSI 单周向上猛冲: r15 - r15_prev >= 2.5)
+              const isExplosionPrep = 
+                r15 >= 45 && 
+                r15 <= 61 && 
+                r15_prev <= 53 && 
+                (r15 - r15_prev) >= 2.5;
 
               if (isExtreme || isExplosionPrep) {
                 await new Promise(r => setTimeout(r, 100)); // Delay before 1H
@@ -95,8 +102,13 @@ export function OpportunitySearchPanel() {
 
                   if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
                     let matchExtreme = isExtreme && ((r15 > 70 && r1h > 70) || (r15 < 30 && r1h < 30));
-                    // 1H is in middle consolidation zone and flattening or starting to rise
-                    let matchExplosion = isExplosionPrep && (r1h >= 40 && r1h <= 63 && r1h >= r1h_prev - 0.2);
+                    // 1H (中线) 仍在 45-58 蓄势期，之前也低，并且当前开始同向拐头拐升 (r1h - r1h_prev >= 0.1)
+                    let matchExplosion = isExplosionPrep && (
+                      r1h >= 45 && 
+                      r1h <= 58 && 
+                      r1h_prev <= 55 && 
+                      (r1h - r1h_prev) >= 0.1
+                    );
 
                     if (matchExtreme || matchExplosion) {
                       await new Promise(r => setTimeout(r, 100)); // Delay before 4H
@@ -108,12 +120,15 @@ export function OpportunitySearchPanel() {
 
                         if (r4h !== undefined && r4h !== null) {
                           let finalExtreme = matchExtreme && ((r15 > 70 && r4h > 70) || (r15 < 30 && r4h < 30));
-                          // 4H background is strong (bullish trend support) and slow-line is higher than current mid-line
+                          // 4H 慢线在 54-75 高位稳定，形成良性多头格局
+                          // 重度开口背离校验 (慢线明显远高于 1H 与 15M 前值，构成弹簧拉紧状态：4H - 1H_prev >= 4 且 4H - 15M_prev >= 8)
                           let finalExplosion = matchExplosion && (
                             r4h >= 54 && 
-                            r4h <= 80 && 
+                            r4h <= 75 && 
                             r4h > r1h && 
-                            (r4h - r1h_prev > 6 || r4h - r15_prev > 10)
+                            r4h > r15 &&
+                            (r4h - r1h_prev >= 4) && 
+                            (r4h - r15_prev >= 8)
                           );
 
                           if (finalExtreme) {

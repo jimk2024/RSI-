@@ -459,6 +459,60 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         rsi1hSeriesRef.current?.setData(r1hData);
         rsi4hSeriesRef.current?.setData(r4hData);
 
+        // Compute and draw precise explosion point markers directly on the candlestick price bar
+        const rsiMarkers: any[] = [];
+        if (candleData.length > 1 && r15mData.length === candleData.length && r1hData.length === candleData.length && r4hData.length === candleData.length) {
+          for (let idx = 1; idx < candleData.length; idx++) {
+            const mc = candleData[idx];
+            const item15m = r15mData[idx];
+            const item15mPrev = r15mData[idx - 1];
+            const item1h = r1hData[idx];
+            const item1hPrev = r1hData[idx - 1];
+            const item4h = r4hData[idx];
+
+            if (item15m && item15mPrev && item1h && item1hPrev && item4h) {
+              const r15 = item15m.value;
+              const r15_prev = item15mPrev.value;
+              const r1h = item1h.value;
+              const r1h_prev = item1hPrev.value;
+              const r4h = item4h.value;
+
+              const isExplosionPrep = 
+                r15 >= 45 && 
+                r15 <= 61 && 
+                r15_prev <= 53 && 
+                (r15 - r15_prev) >= 2.5;
+
+              const matchExplosion = isExplosionPrep && (
+                r1h >= 45 && 
+                r1h <= 58 && 
+                r1h_prev <= 55 && 
+                (r1h - r1h_prev) >= 0.1
+              );
+
+              const finalExplosion = matchExplosion && (
+                r4h >= 54 && 
+                r4h <= 75 && 
+                r4h > r1h && 
+                r4h > r15 &&
+                (r4h - r1h_prev >= 4) && 
+                (r4h - r15_prev >= 8)
+              );
+
+              if (finalExplosion) {
+                rsiMarkers.push({
+                  time: mc.time,
+                  position: 'belowBar',
+                  color: '#fbbf24', // Amber / Gold color
+                  shape: 'arrowUp',
+                  text: '🚀'
+                });
+              }
+            }
+          }
+        }
+        candleSeriesRef.current?.setMarkers(rsiMarkers);
+
         // Analyze and extract latest values for resonance mapping
         if (r15mData.length > 0 && r1hData.length > 0 && r4hData.length > 0) {
           const l15m = r15mData[r15mData.length - 1].value;
@@ -811,6 +865,26 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         )}
 
         <div className="flex-1 relative w-full h-full" ref={chartContainerRef}></div>
+
+        {/* RSI Color Legend Overlay always visible */}
+        <div className="absolute bottom-[28px] left-2 z-10 bg-[#0b0e11]/90 backdrop-blur-sm border border-[#2b2f36] px-2 py-1 rounded text-[9px] text-gray-400 font-medium pointer-events-none flex items-center gap-2.5 shadow-lg select-none">
+          <span className="text-gray-500 font-bold border-r border-[#2b2f36] pr-2">RSI指标多维同框</span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]"></span>
+            <span className="text-[#38bdf8] font-semibold">15M (快)</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+            <span className="text-[#f59e0b] font-semibold">1H (中)</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ec4899]"></span>
+            <span className="text-[#ec4899] font-semibold">4H (慢)</span>
+          </span>
+          <span className="flex items-center gap-1 border-l border-[#2b2f36] pl-2">
+            <span className="text-[#fbbf24] font-bold">🚀 起爆信号</span>
+          </span>
+        </div>
       </div>
 
       {/* Footer - Trading */}
