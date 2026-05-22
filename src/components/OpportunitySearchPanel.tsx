@@ -294,7 +294,7 @@ export function OpportunitySearchPanel() {
             onClick={() => setOverrideChartSymbol({ id: "chart-0", symbol: opp.symbol })}
             className="flex items-center justify-between p-2 rounded bg-[#1e2329] hover:bg-[#2b2f36] cursor-pointer border border-[#2b2f36] hover:border-[#3b82f6]/30 transition-colors"
           >
-            <div className="flex flex-col gap-1 w-[70px] sm:w-auto flex-1 min-w-0">
+            <div className="flex flex-col gap-1 flex-1 min-w-0 pr-2">
               <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                 <span className="text-xs font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
                 {opp.type === "explosion" && (
