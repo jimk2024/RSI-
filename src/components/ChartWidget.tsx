@@ -140,6 +140,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       color: "#38bdf8", // Sky blue for 15M
       lineWidth: 2,
       priceScaleId: "rsi",
+      title: "15M",
     });
     rsi15mSeries.priceScale().applyOptions({
       scaleMargins: { top: 0.85, bottom: 0 },
@@ -150,6 +151,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       color: "#f59e0b", // Amber for 1H
       lineWidth: 2,
       priceScaleId: "rsi",
+      title: "1H",
     });
     rsi1hSeriesRef.current = rsi1hSeries;
 
@@ -157,6 +159,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       color: "#ec4899", // Pink/Hotpink for 4H
       lineWidth: 2,
       priceScaleId: "rsi",
+      title: "4H",
     });
     rsi4hSeriesRef.current = rsi4hSeries;
 
