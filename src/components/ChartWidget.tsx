@@ -978,18 +978,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           )}
         </div>
 
-        {/* Multi-Timeframe Resonance Banner Indicators */}
-        {latestRsiValues && latestRsiValues.rsi15m >= rsiOverbought && latestRsiValues.rsi1h >= rsiOverbought && latestRsiValues.rsi4h >= rsiOverbought && (
-          <div className="absolute top-1 right-2 z-10 bg-[#f43f5e]/80 border border-[#f43f5e] text-white text-[9px] px-2 py-[2px] rounded font-bold animate-pulse shadow-md pointer-events-none">
-            ⚠️ 三维空头共振 (超买/空头区域)
-          </div>
-        )}
-        {latestRsiValues && latestRsiValues.rsi15m <= rsiOversold && latestRsiValues.rsi1h <= rsiOversold && latestRsiValues.rsi4h <= rsiOversold && (
-          <div className="absolute top-1 right-2 z-10 bg-[#10b981]/80 border border-[#10b981] text-white text-[9px] px-2 py-[2px] rounded font-bold animate-pulse shadow-md pointer-events-none">
-            🔥 三维多头共振 (超卖/多头爆发)
-          </div>
-        )}
-
         <div className="flex-1 relative w-full h-full" ref={chartContainerRef}></div>
       </div>
 
