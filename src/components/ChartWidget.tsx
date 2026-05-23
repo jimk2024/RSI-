@@ -26,7 +26,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   const [price, setPrice] = useState<number | null>(null);
   const [vol24h, setVol24h] = useState<number | null>(null);
   const [crosshairInfo, setCrosshairInfo] = useState<any>(null);
-  const [flashStatus, setFlashStatus] = useState<"none" | "red" | "green">("none");
   const [latestRsiValues, setLatestRsiValues] = useState<{ rsi15m: number; rsi1h: number; rsi4h: number } | null>(null);
   
   const [timeframe, setTimeframe] = useState("15m");
@@ -645,15 +644,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           const l1h = r1hData[r1hData.length - 1].value;
           const l4h = r4hData[r4hData.length - 1].value;
           setLatestRsiValues({ rsi15m: l15m, rsi1h: l1h, rsi4h: l4h });
-
-          // Determine resonance state for flashing effect
-          if (l15m >= rsiOverbought && l1h >= rsiOverbought && l4h >= rsiOverbought) {
-            setFlashStatus("red");
-          } else if (l15m <= rsiOversold && l1h <= rsiOversold && l4h <= rsiOversold) {
-            setFlashStatus("green");
-          } else {
-            setFlashStatus("none");
-          }
         }
 
         // Draw Overbought/Oversold dash limits on rsi15m
@@ -841,9 +831,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     .filter(i => i.instId.endsWith("-USDT-SWAP") && i.instId.toUpperCase().includes(searchText.toUpperCase()))
     .sort((a, b) => a.instId.localeCompare(b.instId));
 
-  const containerClasses = `bg-[#161a1e] border border-[#2b2f36] rounded-lg p-2 flex flex-col h-full min-h-0 transition-all duration-300 ${
-    flashStatus === "red" ? "animate-flash-red" : flashStatus === "green" ? "animate-flash-green" : ""
-  } ${className}`;
+  const containerClasses = `bg-[#161a1e] border border-[#2b2f36] rounded-lg p-2 flex flex-col h-full min-h-0 transition-all duration-300 ${className}`;
 
   return (
     <div className={containerClasses}>
