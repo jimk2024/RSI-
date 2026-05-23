@@ -36,8 +36,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  
-  const [isFrozen, setIsFrozen] = useState(false);
 
   useEffect(() => {
     if (isMaximized || id === "chart-0") {
@@ -52,11 +50,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       setOverrideChartSymbol(null);
     }
   }, [overrideChartSymbol, id, setOverrideChartSymbol]);
-
-  // Position Checking
-  useEffect(() => {
-    setIsFrozen(positions?.some(p => p.instId === symbol) || false);
-  }, [symbol, positions]);
 
   // Try to use ref to hold chart state instead of React state to avoid re-render loops
   const chartRef = useRef<IChartApi | null>(null);
@@ -840,9 +833,8 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         <div className="flex items-center gap-2">
           <div className="relative">
             <button
-              onClick={() => !isFrozen && setDropdownOpen(!dropdownOpen)}
-              disabled={isFrozen}
-              className={`bg-transparent text-xs font-bold focus:outline-none px-1 rounded uppercase text-[#e0e3e7] flex items-center gap-1 ${isFrozen ? "opacity-50 cursor-not-allowed" : "hover:bg-[#1e2329] cursor-pointer"}`}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="bg-transparent text-xs font-bold focus:outline-none px-1 rounded uppercase text-[#e0e3e7] flex items-center gap-1 hover:bg-[#1e2329] cursor-pointer"
             >
               {symbol.replace("-SWAP", "")}
               <ChevronDown size={14} />
@@ -916,11 +908,11 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           
           <div className="flex items-center gap-1 ml-2">
             <span className="text-[10px] text-gray-500">RSI:</span>
-            <input type="number" min={6} max={20} value={rsiPeriod} onChange={(e) => setRsiPeriod(Number(e.target.value) || 14)} disabled={isFrozen} className={`w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-gray-300 outline-none focus:border-[#474d57] ${isFrozen ? "opacity-50 cursor-not-allowed" : ""}`} title="周期 (6-20)" />
+            <input type="number" min={6} max={20} value={rsiPeriod} onChange={(e) => setRsiPeriod(Number(e.target.value) || 14)} className="w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-gray-300 outline-none focus:border-[#474d57]" title="周期 (6-20)" />
             <span className="text-[10px] text-gray-500 ml-1">超买:</span>
-            <input type="number" min={65} max={85} value={rsiOverbought} onChange={(e) => setRsiOverbought(Number(e.target.value) || 70)} disabled={isFrozen} className={`w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-[#f43f5e] outline-none focus:border-[#474d57] ${isFrozen ? "opacity-50 cursor-not-allowed" : ""}`} title="超买 (65-85)" />
+            <input type="number" min={65} max={85} value={rsiOverbought} onChange={(e) => setRsiOverbought(Number(e.target.value) || 70)} className="w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-[#f43f5e] outline-none focus:border-[#474d57]" title="超买 (65-85)" />
             <span className="text-[10px] text-gray-500 ml-1">超卖:</span>
-            <input type="number" min={15} max={35} value={rsiOversold} onChange={(e) => setRsiOversold(Number(e.target.value) || 30)} disabled={isFrozen} className={`w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-[#10b981] outline-none focus:border-[#474d57] ${isFrozen ? "opacity-50 cursor-not-allowed" : ""}`} title="超卖 (15-35)" />
+            <input type="number" min={15} max={35} value={rsiOversold} onChange={(e) => setRsiOversold(Number(e.target.value) || 30)} className="w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-[#10b981] outline-none focus:border-[#474d57]" title="超卖 (15-35)" />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -971,10 +963,10 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
 
       {/* Footer - Trading */}
       <div className="grid grid-cols-2 gap-1 mt-2 shrink-0">
-        <button disabled={isFrozen} onClick={() => handleTrade("buy", "long")} className={`py-1 rounded text-[10px] font-bold transition-colors ${isFrozen ? "bg-[#1e2329] text-gray-600 cursor-not-allowed" : "bg-[#00b07c]/20 text-[#00b07c] border border-[#00b07c]/40 hover:bg-[#00b07c]/30"}`}>
+        <button onClick={() => handleTrade("buy", "long")} className="py-1 rounded text-[10px] font-bold transition-colors bg-[#00b07c]/20 text-[#00b07c] border border-[#00b07c]/40 hover:bg-[#00b07c]/30">
           开多
         </button>
-        <button disabled={isFrozen} onClick={() => handleTrade("sell", "short")} className={`py-1 rounded text-[10px] font-bold transition-colors ${isFrozen ? "bg-[#1e2329] text-gray-600 cursor-not-allowed" : "bg-[#f6465d]/20 text-[#f6465d] border border-[#f6465d]/40 hover:bg-[#f6465d]/30"}`}>
+        <button onClick={() => handleTrade("sell", "short")} className="py-1 rounded text-[10px] font-bold transition-colors bg-[#f6465d]/20 text-[#f6465d] border border-[#f6465d]/40 hover:bg-[#f6465d]/30">
           开空
         </button>
       </div>
