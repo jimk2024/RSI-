@@ -52,9 +52,9 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
         </div>
 
         <div className="bg-[#161a1e] border border-[#2b2f36] rounded-xl p-8 mb-8">
-          <h3 className="text-xl font-bold mb-4 text-white">机会搜索面板 (共振预警)</h3>
+          <h3 className="text-xl font-bold mb-4 text-white">机会预警面板 (共振预警)</h3>
           <p className="text-gray-400 mb-4 leading-relaxed">
-            左侧的机会搜索面板可持续对市场全盘进行轮询扫描，寻找市场极具潜力的异动信号：
+            左侧的机会预警面板可持续对市场全盘进行轮询扫描，寻找市场极具潜力的异动信号：
           </p>
           <div className="space-y-4 mb-4">
              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
@@ -71,7 +71,7 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
              </div>
           </div>
           <p className="text-xs text-gray-500 font-mono">
-            提示：点击列表中任意搜索结果，所有相关联的实时金融图表将会瞬间同步为您展示该币种的微观走势与核心指标。
+            提示：点击列表中任意预警结果，所有相关联的实时金融图表将会瞬间同步为您展示该币种的微观走势与核心指标。
           </p>
         </div>
 

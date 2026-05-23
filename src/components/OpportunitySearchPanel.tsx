@@ -229,7 +229,7 @@ export function OpportunitySearchPanel() {
       <div className="flex items-center justify-between mb-0.5 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-2 h-5 bg-[#3b82f6] rounded-full"></div>
-          <h2 className="text-sm font-bold tracking-wider">机会搜索</h2>
+          <h2 className="text-sm font-bold tracking-wider">机会预警</h2>
         </div>
         <div className="text-[10px] text-gray-400 font-mono flex items-center gap-1.5 bg-[#1e2329] px-2 py-0.5 rounded border border-[#2b2f36]/80 text-right">
           {isSearching ? (
