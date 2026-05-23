@@ -539,7 +539,15 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
 
               const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
               const is1hBullish = r1h > 60 && r1h_prev > 60;
-              const is4hBullish = r4h >= 70;
+
+              let r4h_prev = r4h;
+              for (let j = idx - 1; j >= 0; j--) {
+                if (r4hDataOn15m[j] && r4hDataOn15m[j].value !== r4h) {
+                  r4h_prev = r4hDataOn15m[j].value;
+                  break;
+                }
+              }
+              const is4hBullish = r4h >= 70 && r4h > r4h_prev && r4h_prev < 71;
 
               const finalExplosion = is15mBullish && is1hBullish && is4hBullish;
 

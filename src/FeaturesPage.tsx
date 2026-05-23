@@ -40,7 +40,7 @@ export function FeaturesPage({ onEnter }: { onEnter?: () => void }) {
               内置专业级技术扫描矩阵，独创的起爆预警模型算法能够不间断扫描市场，帮您从全网海量山寨币中提取高胜率交易机会：
             </p>
             <ul className="list-disc pl-5 text-gray-400 space-y-2">
-              <li><strong className="text-gray-300">大周期动能确认：</strong>自动监测 4小时级别 RSI 是否突破 70 建立强多头格局。</li>
+              <li><strong className="text-gray-300">大周期动能确认：</strong>自动监测 4小时级别 RSI 是否刚刚突破 70 建立强多头格局，过滤掉长期驻留高位或开始收缩的钝化标的。</li>
               <li><strong className="text-gray-300">中周期势能传导：</strong>要求 1小时级别连续两根 K线稳住 60 以上，确保趋势的健康发展。</li>
               <li><strong className="text-gray-300">微观极速起爆点：</strong>在 15分钟级别精确捕捉 RSI 突破 55 并呈现连续上涨态势的瞬间，第一时间推送警报。</li>
             </ul>

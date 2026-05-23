@@ -114,9 +114,11 @@ export function OpportunitySearchPanel() {
                         const rsi4hList = calculateRSI(closes4h, 14);
                         const r4h = rsi4hList[rsi4hList.length - 1];
 
-                        if (r4h !== undefined && r4h !== null) {
-                          // 4H线rsi达到70
-                          const is4hBullish = r4h >= 70;
+                        const r4h_prev = rsi4hList[rsi4hList.length - 2];
+
+                        if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
+                          // 4H线刚确认上到70且未收缩 (当前>=70, 并且大于前值, 且前值小于71)
+                          const is4hBullish = r4h >= 70 && r4h > r4h_prev && r4h_prev < 71;
 
                           if (is4hBullish) {
                             // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
