@@ -52,28 +52,16 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
         </div>
 
         <div className="bg-[#161a1e] border border-[#2b2f36] rounded-xl p-8 mb-8">
-          <h3 className="text-xl font-bold mb-4 text-white">机会搜索面板 (多维异动)</h3>
+          <h3 className="text-xl font-bold mb-4 text-white">机会搜索面板 (共振预警)</h3>
           <p className="text-gray-400 mb-4 leading-relaxed">
-            左侧的机会搜索面板可持续对币安大盘进行轮询扫描，寻找市场极具潜力的异动信号。面板中提供三种核心信号：
+            左侧的机会搜索面板可持续对市场全盘进行轮询扫描，寻找市场极具潜力的异动信号：
           </p>
           <div className="space-y-4 mb-4">
              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
                <h4 className="text-white font-bold mb-2 flex items-center gap-2">
-                 <span className="text-yellow-400">🚀 共振起爆</span>
+                 <span className="text-yellow-400">🚀 起爆预警</span>
                </h4>
-               <p className="text-sm text-gray-400">当标的在 15分钟/1小时/4小时等关键时间窗口 RSI 同步突破，同时价格站上 EMA20 均线，且最新 15 分钟 K 线呈现阳线上涨并伴随明显的放量（至少 1.25 倍于近期平均），系统会将其标记为起爆异动，并在图表中绘制黄色向上的起爆标识。这是潜在的高胜率做多机会。</p>
-             </div>
-             <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
-               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
-                 <span className="text-red-400">📉 极值超买</span>
-               </h4>
-               <p className="text-sm text-gray-400">标的近期涨幅过大，RSI（相对强弱指数）突破上轨 70，市场面临获利盘抛售和超买回调的风险。</p>
-             </div>
-             <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
-               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
-                 <span className="text-emerald-400">📈 极值超卖</span>
-               </h4>
-               <p className="text-sm text-gray-400">标的近期跌幅较深，RSI 跌破下轨 30，市场抛压衰竭，可能出现短期情绪反弹。</p>
+               <p className="text-sm text-gray-400">当标的 4小时级别 RSI 达到 70，同时 1小时级别 RSI 连续两根 K线稳住 60 以上，且最核心的 15分钟级别 RSI 突破 55 并且呈现连续上涨态势时触发。该起爆算法能够有效地对各个周期的共振突破点进行监测过滤，寻找极高确定性的右侧动能。信号触发后会在主图表底部印刻醒目的黄色向上标识。</p>
              </div>
           </div>
           <p className="text-xs text-gray-500 font-mono">

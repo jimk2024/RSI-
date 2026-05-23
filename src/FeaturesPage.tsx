@@ -35,14 +35,14 @@ export function FeaturesPage({ onEnter }: { onEnter?: () => void }) {
           </section>
           
           <section>
-            <h3 className="text-2xl font-bold text-white mb-4">多维异动共振引擎 (机会搜索)</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">精准起爆预警引擎</h3>
             <p className="text-gray-400 leading-relaxed mb-3">
-              内置专业级技术扫描矩阵，不仅支持多周期 RSI 极值追踪，更独创了“共振起爆”模型算法，帮您从全网海量山寨币中提取高胜率交易机会：
+              内置专业级技术扫描矩阵，独创的起爆预警模型算法能够不间断扫描市场，帮您从全网海量山寨币中提取高胜率交易机会：
             </p>
             <ul className="list-disc pl-5 text-gray-400 space-y-2">
-              <li><strong className="text-gray-300">多周期势能共振：</strong>算法严格比对 15M / 1H / 4H 级别，过滤单一边界假突破。</li>
-              <li><strong className="text-gray-300">成交倍量与形态：</strong>自动结合成交量放大倍数校验与 K 线实体方向确认，防范流动性陷阱。</li>
-              <li><strong className="text-gray-300">趋势带压制检测：</strong>内置 EMA20 等动态均线检测，确保突破机会有稳定的结构支撑。</li>
+              <li><strong className="text-gray-300">大周期动能确认：</strong>自动监测 4小时级别 RSI 是否突破 70 建立强多头格局。</li>
+              <li><strong className="text-gray-300">中周期势能传导：</strong>要求 1小时级别连续两根 K线稳住 60 以上，确保趋势的健康发展。</li>
+              <li><strong className="text-gray-300">微观极速起爆点：</strong>在 15分钟级别精确捕捉 RSI 突破 55 并呈现连续上涨态势的瞬间，第一时间推送警报。</li>
             </ul>
           </section>
 

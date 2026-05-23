@@ -9,7 +9,7 @@ interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "extreme_buy" | "extreme_sell" | "explosion";
+  type: "explosion";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -87,20 +87,13 @@ export function OpportunitySearchPanel() {
             const latestIdx = closes15m.length - 1;
             const r15 = rsi15mList[latestIdx];
             const r15_prev = rsi15mList[latestIdx - 1];
+            const r15_prev2 = rsi15mList[latestIdx - 2];
             
-            if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null) {
-              const isExtreme = r15 > 70 || r15 < 30;
-              // 精准起爆瞬间：
-              // 1. 15M (快线) 处于 45-61 刚刚起跑或交叉区间，不能超过 61 防止已经高度拉升/追高
-              // 2. 15M 之前处于走平及洗盘低层 (r15_prev <= 53)
-              // 3. 15M 出现大角度上攻拐头 (RSI 单周向上猛冲: r15 - r15_prev >= 2.5)
-              const isExplosionPrep = 
-                r15 >= 45 && 
-                r15 <= 61 && 
-                r15_prev <= 53 && 
-                (r15 - r15_prev) >= 2.5;
+            if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null && r15_prev2 !== undefined && r15_prev2 !== null) {
+              // 15M线在55以上且连续上涨
+              const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
 
-              if (isExtreme || isExplosionPrep) {
+              if (is15mBullish) {
                 await new Promise(r => setTimeout(r, 100)); // Delay before 1H
                 const data1h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=50`);
                 if (data1h && data1h.length > 0) {
@@ -110,16 +103,10 @@ export function OpportunitySearchPanel() {
                   const r1h_prev = rsi1hList[rsi1hList.length - 2];
 
                   if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
-                    let matchExtreme = isExtreme && ((r15 > 70 && r1h > 70) || (r15 < 30 && r1h < 30));
-                    // 1H (中线) 仍在 45-58 蓄势期，之前也低，并且当前开始同向拐头拐升 (r1h - r1h_prev >= 0.1)
-                    let matchExplosion = isExplosionPrep && (
-                      r1h >= 45 && 
-                      r1h <= 58 && 
-                      r1h_prev <= 55 && 
-                      (r1h - r1h_prev) >= 0.1
-                    );
+                    // 1H线连续2个K线超越60 (当前和前一个)
+                    const is1hBullish = r1h > 60 && r1h_prev > 60;
 
-                    if (matchExtreme || matchExplosion) {
+                    if (is1hBullish) {
                       await new Promise(r => setTimeout(r, 100)); // Delay before 4H
                       const data4h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
                       if (data4h && data4h.length > 0) {
@@ -128,62 +115,40 @@ export function OpportunitySearchPanel() {
                         const r4h = rsi4hList[rsi4hList.length - 1];
 
                         if (r4h !== undefined && r4h !== null) {
-                          let finalExtreme = matchExtreme && ((r15 > 70 && r4h > 70) || (r15 < 30 && r4h < 30));
-                          // 4H 慢线在 54-75 高位稳定，形成良性多头格局
-                          // 重度开口背离校验 (慢线明显远高于 1H 与 15M 前值，构成弹簧拉紧状态：4H - 1H_prev >= 4 且 4H - 15M_prev >= 8)
-                          let finalExplosion = matchExplosion && (
-                            r4h >= 54 && 
-                            r4h <= 75 && 
-                            r4h > r1h && 
-                            r4h > r15 &&
-                            (r4h - r1h_prev >= 4) && 
-                            (r4h - r15_prev >= 8)
-                          );
+                          // 4H线rsi达到70
+                          const is4hBullish = r4h >= 70;
 
-                          // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
-                          const currentClose = closes15m[latestIdx];
-                          const currentOpen = opens15m[latestIdx];
-                          const currentVol = vols15m[latestIdx];
-                          
-                          let sumVol = 0;
-                          let count = 0;
-                          for (let i = Math.max(0, latestIdx - 10); i < latestIdx; i++) {
-                            sumVol += vols15m[i];
-                            count++;
-                          }
-                          const avgVol = count > 0 ? (sumVol / count) : 0;
-                          const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
-                          
-                          const ema20Val = ema20List[latestIdx];
-                          const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
-                          const isBullishCandle = currentClose > currentOpen;
+                          if (is4hBullish) {
+                            // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
+                            const currentClose = closes15m[latestIdx];
+                            const currentOpen = opens15m[latestIdx];
+                            const currentVol = vols15m[latestIdx];
+                            
+                            let sumVol = 0;
+                            let count = 0;
+                            for (let i = Math.max(0, latestIdx - 10); i < latestIdx; i++) {
+                              sumVol += vols15m[i];
+                              count++;
+                            }
+                            const avgVol = count > 0 ? (sumVol / count) : 0;
+                            const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
+                            
+                            const ema20Val = ema20List[latestIdx];
+                            const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
+                            const isBullishCandle = currentClose > currentOpen;
 
-                          if (finalExtreme) {
-                            opps.push({
-                              symbol,
-                              rsi: r15,
-                              rsi1h: r1h,
-                              rsi4h: r4h,
-                              type: r15 > 70 ? "extreme_sell" : "extreme_buy",
-                              typeLabel: r15 > 70 ? "极值超买" : "极值超卖",
-                              volSurgeMultiplier,
-                              aboveEma20,
-                              isBullishCandle
-                            });
-                            // Sort with extreme levels first
-                            setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
-                          } else if (finalExplosion) {
                             opps.push({
                               symbol,
                               rsi: r15,
                               rsi1h: r1h,
                               rsi4h: r4h,
                               type: "explosion",
-                              typeLabel: "共振起爆",
+                              typeLabel: "起爆预警",
                               volSurgeMultiplier,
                               aboveEma20,
                               isBullishCandle
                             });
+                            // Sort with highest 15m RSI first
                             setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
                           }
                         }
@@ -259,27 +224,9 @@ export function OpportunitySearchPanel() {
       <div className="flex items-center bg-[#1e2329] p-0.5 rounded border border-[#2b2f36] text-[10px] select-none shrink-0">
         <button
           onClick={() => setActiveTab("all")}
-          className={`flex-1 text-center py-1 rounded transition-colors ${activeTab === "all" ? "bg-[#3b82f6] text-white font-bold" : "text-gray-400 hover:text-white"}`}
+          className={`flex-1 text-center py-1 rounded transition-colors bg-yellow-600/80 text-white font-bold`}
         >
-          综合 ({opportunities.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("explosion")}
-          className={`flex-1 text-center py-1 rounded transition-colors ${activeTab === "explosion" ? "bg-yellow-600/80 text-white font-bold" : "text-gray-400 hover:text-white"}`}
-        >
-          🚀 起爆 ({opportunities.filter(o => o.type === "explosion").length})
-        </button>
-        <button
-          onClick={() => setActiveTab("extreme_sell")}
-          className={`flex-1 text-center py-1 rounded transition-colors ${activeTab === "extreme_sell" ? "bg-[#f43f5e] text-white font-bold" : "text-gray-400 hover:text-white"}`}
-        >
-          📉 超买 ({opportunities.filter(o => o.type === "extreme_sell").length})
-        </button>
-        <button
-          onClick={() => setActiveTab("extreme_buy")}
-          className={`flex-1 text-center py-1 rounded transition-colors ${activeTab === "extreme_buy" ? "bg-[#10b981] text-white font-bold" : "text-gray-400 hover:text-white"}`}
-        >
-          📈 超卖 ({opportunities.filter(o => o.type === "extreme_buy").length})
+          🚀 预警 ({opportunities.length})
         </button>
       </div>
 
@@ -299,17 +246,7 @@ export function OpportunitySearchPanel() {
                 <span className="text-sm font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
                 {opp.type === "explosion" && (
                   <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1 bg-yellow-950/50 border border-yellow-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    <Sparkles size={10} className="text-yellow-400" /> 共振起爆
-                  </span>
-                )}
-                {opp.type === "extreme_sell" && (
-                  <span className="text-[10px] font-bold text-red-400 flex items-center gap-1 bg-red-950/50 border border-red-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    📉 极值超买
-                  </span>
-                )}
-                {opp.type === "extreme_buy" && (
-                  <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-950/50 border border-emerald-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    📈 极值超卖
+                    <Sparkles size={10} className="text-yellow-400" /> 起爆预警
                   </span>
                 )}
               </div>

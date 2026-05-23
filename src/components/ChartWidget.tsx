@@ -76,6 +76,15 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    const formatters = {
+      year: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric' }),
+      month: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'short' }),
+      day: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', day: 'numeric' }),
+      time: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hour12: false }),
+      timeWithSeconds: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+      full: new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    };
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { color: "transparent" },
@@ -85,12 +94,23 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         vertLines: { visible: false },
         horzLines: { visible: false },
       },
+      localization: {
+        timeFormatter: (time: Time) => {
+          return formatters.full.format(new Date((time as number) * 1000));
+        },
+      },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
         tickMarkFormatter: (time: Time, tickMarkType: TickMarkType, locale: string) => {
           const date = new Date((time as number) * 1000);
-          return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+          switch(tickMarkType) {
+            case TickMarkType.Year: return formatters.year.format(date);
+            case TickMarkType.Month: return formatters.month.format(date);
+            case TickMarkType.DayOfMonth: return formatters.day.format(date);
+            case TickMarkType.Time: return formatters.time.format(date);
+            default: return formatters.timeWithSeconds.format(date);
+          }
         },
       },
       rightPriceScale: {
@@ -501,41 +521,27 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           }));
           const r4hDataOn15m = mapTimeframeRsiToMain(baseCandle15mData, r4hListBaseRaw);
 
-          for (let idx = 1; idx < baseCandle15mData.length; idx++) {
+          for (let idx = 2; idx < baseCandle15mData.length; idx++) {
             const item15m = r15mListBase[idx];
             const item15mPrev = r15mListBase[idx - 1];
+            const item15mPrev2 = r15mListBase[idx - 2];
             const item1h = r1hDataOn15m[idx];
             const item1hPrev = r1hDataOn15m[idx - 1];
             const item4h = r4hDataOn15m[idx];
 
-            if (item15m && item15mPrev && item1h && item1hPrev && item4h) {
+            if (item15m && item15mPrev && item15mPrev2 && item1h && item1hPrev && item4h) {
               const r15 = item15m.value;
               const r15_prev = item15mPrev.value;
+              const r15_prev2 = item15mPrev2.value;
               const r1h = item1h.value;
               const r1h_prev = item1hPrev.value;
               const r4h = item4h.value;
 
-              const isExplosionPrep = 
-                r15 >= 45 && 
-                r15 <= 61 && 
-                r15_prev <= 53 && 
-                (r15 - r15_prev) >= 2.5;
+              const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
+              const is1hBullish = r1h > 60 && r1h_prev > 60;
+              const is4hBullish = r4h >= 70;
 
-              const matchExplosion = isExplosionPrep && (
-                r1h >= 45 && 
-                r1h <= 58 && 
-                r1h_prev <= 55 && 
-                (r1h - r1h_prev) >= 0.1
-              );
-
-              const finalExplosion = matchExplosion && (
-                r4h >= 54 && 
-                r4h <= 75 && 
-                r4h > r1h && 
-                r4h > r15 &&
-                (r4h - r1h_prev >= 4) && 
-                (r4h - r15_prev >= 8)
-              );
+              const finalExplosion = is15mBullish && is1hBullish && is4hBullish;
 
               if (finalExplosion) {
                 // Calculate volume surge
@@ -553,11 +559,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
                 const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (baseCandle15mData[idx].close >= ema20Val) : true;
                 const isBullishCandle = baseCandle15mData[idx].close > baseCandle15mData[idx].open;
 
-                // For the signal to trigger, require reasonable threshold:
-                // - Bullish candle to prevent short-squeeze hairpins
-                // - Above EMA20 to prevent buying a dead cat bounce under strong downward trend
-                // - Vol surge multiplier >= 1.25
-                if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
+                if (isBullishCandle && aboveEma20) {
                   signalTimes.add(baseCandle15mData[idx].time as number);
                 }
               }
