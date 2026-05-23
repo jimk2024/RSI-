@@ -117,8 +117,8 @@ export function OpportunitySearchPanel() {
                         const r4h_prev = rsi4hList[rsi4hList.length - 2];
 
                         if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
-                          // 4H线刚确认上到70且未收缩 (当前>=70, 并且大于前值, 且前值小于71)
-                          const is4hBullish = r4h >= 70 && r4h > r4h_prev && r4h_prev < 71;
+                          // 4H线刚确认上到70且未收缩 (当前>=70, 并且前值严格<70，确保只抓取最初爆破的瞬间，防止高位钝化后追涨)
+                          const is4hBullish = r4h >= 70 && r4h_prev < 70;
 
                           if (is4hBullish) {
                             // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
@@ -139,19 +139,22 @@ export function OpportunitySearchPanel() {
                             const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
                             const isBullishCandle = currentClose > currentOpen;
 
-                            opps.push({
-                              symbol,
-                              rsi: r15,
-                              rsi1h: r1h,
-                              rsi4h: r4h,
-                              type: "explosion",
-                              typeLabel: "起爆预警",
-                              volSurgeMultiplier,
-                              aboveEma20,
-                              isBullishCandle
-                            });
-                            // Sort with highest 15m RSI first
-                            setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
+                            // Additional filters: must be a bullish candle, must be above EMA20, and must have a volume surge
+                            if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
+                              opps.push({
+                                symbol,
+                                rsi: r15,
+                                rsi1h: r1h,
+                                rsi4h: r4h,
+                                type: "explosion",
+                                typeLabel: "起爆预警",
+                                volSurgeMultiplier,
+                                aboveEma20,
+                                isBullishCandle
+                              });
+                              // Sort with highest 15m RSI first
+                              setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
+                            }
                           }
                         }
                       }

@@ -540,14 +540,14 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
               const is1hBullish = r1h > 60 && r1h_prev > 60;
 
-              let r4h_prev = r4h;
+              let r4h_prev_val = r4h;
               for (let j = idx - 1; j >= 0; j--) {
                 if (r4hDataOn15m[j] && r4hDataOn15m[j].value !== r4h) {
-                  r4h_prev = r4hDataOn15m[j].value;
+                  r4h_prev_val = r4hDataOn15m[j].value;
                   break;
                 }
               }
-              const is4hBullish = r4h >= 70 && r4h > r4h_prev && r4h_prev < 71;
+              const is4hBullish = r4h >= 70 && r4h_prev_val < 70;
 
               const finalExplosion = is15mBullish && is1hBullish && is4hBullish;
 
@@ -567,7 +567,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
                 const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (baseCandle15mData[idx].close >= ema20Val) : true;
                 const isBullishCandle = baseCandle15mData[idx].close > baseCandle15mData[idx].open;
 
-                if (isBullishCandle && aboveEma20) {
+                if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
                   signalTimes.add(baseCandle15mData[idx].time as number);
                 }
               }
