@@ -85,8 +85,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
              <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-[#a855f7]">
                <BrainCircuit size={24} />
              </div>
-             <h3 className="text-xl font-bold mb-3 tracking-wide">技术指标实时扫描</h3>
-             <p className="text-gray-400 text-sm leading-relaxed">内置快速技术分析扫描器，结合价格、均线及 RSI 等数据，实时发现特定交易机会。</p>
+             <h3 className="text-xl font-bold mb-3 tracking-wide">多维异动扫描架构</h3>
+             <p className="text-gray-400 text-sm leading-relaxed">内置高级技术分析矩阵引擎，通过成交量倍放、EMA均线确认及K线形态等多维数据共振，实时捕获起爆异动与极值拐点。</p>
           </motion.div>
 
           <motion.div 

@@ -35,10 +35,15 @@ export function FeaturesPage({ onEnter }: { onEnter?: () => void }) {
           </section>
           
           <section>
-            <h3 className="text-2xl font-bold text-white mb-4">技术指标扫描</h3>
-            <p className="text-gray-400 leading-relaxed">
-              内置基础的技术分析辅助扫描功能，通过均线、RSI 甚至是简单的放量状态进行即时条件过滤。从几百个市场交易对中筛选出符合趋势特征的标的。
+            <h3 className="text-2xl font-bold text-white mb-4">多维异动共振引擎 (机会搜索)</h3>
+            <p className="text-gray-400 leading-relaxed mb-3">
+              内置专业级技术扫描矩阵，不仅支持多周期 RSI 极值追踪，更独创了“共振起爆”模型算法，帮您从全网海量山寨币中提取高胜率交易机会：
             </p>
+            <ul className="list-disc pl-5 text-gray-400 space-y-2">
+              <li><strong className="text-gray-300">多周期势能共振：</strong>算法严格比对 15M / 1H / 4H 级别，过滤单一边界假突破。</li>
+              <li><strong className="text-gray-300">成交倍量与形态：</strong>自动结合成交量放大倍数校验与 K 线实体方向确认，防范流动性陷阱。</li>
+              <li><strong className="text-gray-300">趋势带压制检测：</strong>内置 EMA20 等动态均线检测，确保突破机会有稳定的结构支撑。</li>
+            </ul>
           </section>
 
           <section>
