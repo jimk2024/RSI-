@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
+import { Send } from "lucide-react";
 
 export function LicensePage({ onBack }: { onBack: () => void }) {
   const [code, setCode] = useState("");
@@ -65,6 +66,14 @@ export function LicensePage({ onBack }: { onBack: () => void }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-[#3b82f6] bg-[#3b82f6]/10 border border-[#3b82f6]/20 py-2.5 px-3 rounded-lg">
+            <Send size={14} className="-ml-1 -rotate-12" />
+            <span>可加入Telegram群获取激活码：</span>
+            <a href="https://t.me/aitrader100" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-300 font-bold tracking-wide">
+              https://t.me/aitrader100
+            </a>
+          </div>
+
           <div>
             <label className="text-xs text-gray-400 uppercase tracking-wider block mb-2 font-mono">
               Activation License Key
