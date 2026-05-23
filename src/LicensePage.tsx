@@ -6,7 +6,7 @@ export function LicensePage({ onBack }: { onBack: () => void }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, token, refreshUser } = useAuth();
+  const { user, token, refreshUser, logout } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +94,15 @@ export function LicensePage({ onBack }: { onBack: () => void }) {
             className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
           >
             {loading ? "联网验证中..." : "激活系统并进入控制台"}
+          </button>
+          
+          <button 
+            type="button"
+            onClick={logout}
+            disabled={loading}
+            className="w-full py-2.5 bg-transparent text-gray-400 text-sm font-medium rounded-lg hover:text-white hover:bg-[#2b2f36]/50 border border-transparent transition-all"
+          >
+            返回登录框
           </button>
         </form>
 
