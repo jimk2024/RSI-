@@ -484,6 +484,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
 
         // Evaluate the breakout signal strictly on the ultra-precise 15-minute timeframe resolution (execution timeline)
         const signalTimes = new Set<number>();
+        const bottomSignalTimes = new Set<number>();
         if (data15m && data15m.length > 0 && data1h && data1h.length > 0 && data4h && data4h.length > 0) {
           const sorted15mBase = [...data15m].reverse();
           const closes15mBase = sorted15mBase.map((d: any) => parseFloat(d[4]));
@@ -538,7 +539,16 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               const r4h = item4h.value;
 
               const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
+              const is15mBottom = r15 > 55 && r15_prev <= 55;
+              
               const is1hBullish = r1h > 60 && r1h_prev > 60;
+              let has1hBelow30 = false;
+              for (let k = Math.max(0, idx - 6); k < idx; k++) {
+                if (r1hDataOn15m[k] && r1hDataOn15m[k].value < 30) {
+                  has1hBelow30 = true;
+                }
+              }
+              const is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
 
               let r4h_prev_val = r4h;
               for (let j = idx - 1; j >= 0; j--) {
@@ -548,10 +558,12 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
                 }
               }
               const is4hBullish = r4h >= 70 && r4h_prev_val < 70;
+              const is4hBottom = r4h < 30;
 
-              const finalExplosion = is15mBullish && is1hBullish && is4hBullish;
+              const validExplosion = is15mBullish && is1hBullish && is4hBullish;
+              const validBottomFishing = is15mBottom && is1hBottom && is4hBottom;
 
-              if (finalExplosion) {
+              if (validExplosion || validBottomFishing) {
                 // Calculate volume surge
                 const currentVol = baseCandle15mData[idx].volume;
                 let sumVol = 0;
@@ -567,8 +579,10 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
                 const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (baseCandle15mData[idx].close >= ema20Val) : true;
                 const isBullishCandle = baseCandle15mData[idx].close > baseCandle15mData[idx].open;
 
-                if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
+                if (validExplosion && isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
                   signalTimes.add(baseCandle15mData[idx].time as number);
+                } else if (validBottomFishing && isBullishCandle && volSurgeMultiplier >= 1.2) {
+                  bottomSignalTimes.add(baseCandle15mData[idx].time as number);
                 }
               }
             }
@@ -597,6 +611,14 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
             }
           }
 
+          let hasBottom = false;
+          for (const bTime of Array.from(bottomSignalTimes)) {
+            if (bTime >= mcTime && bTime < mcTime + durationSec) {
+              hasBottom = true;
+              break;
+            }
+          }
+
           if (hasExplosion) {
             rsiMarkers.push({
               time: mc.time,
@@ -604,6 +626,14 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
               color: '#fbbf24', // Amber / Gold color
               shape: 'arrowUp',
               text: '🚀'
+            });
+          } else if (hasBottom) {
+            rsiMarkers.push({
+              time: mc.time,
+              position: 'belowBar',
+              color: '#34d399', 
+              shape: 'arrowUp',
+              text: '✅'
             });
           }
         }

@@ -85,8 +85,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
              <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-[#a855f7]">
                <BrainCircuit size={24} />
              </div>
-             <h3 className="text-xl font-bold mb-3 tracking-wide">起爆预警检测系统</h3>
-             <p className="text-gray-400 text-sm leading-relaxed">内置高级技术分析矩阵引擎，严格监控 15M / 1H / 4H 级别动能，实时为您寻找极高确定性的市场起爆机会。</p>
+             <h3 className="text-xl font-bold mb-3 tracking-wide">双向趋势预警系统</h3>
+             <p className="text-gray-400 text-sm leading-relaxed">内置高级技术分析矩阵引擎，严格穿透监控 15M / 1H / 4H 级别动能，实时为您捕捉极高确定性的右侧起爆与左侧抄底反转机会。</p>
           </motion.div>
 
           <motion.div 

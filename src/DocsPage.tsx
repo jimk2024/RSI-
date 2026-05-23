@@ -63,6 +63,12 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
                </h4>
                <p className="text-sm text-gray-400">当标的 4小时级别 RSI 刚刚突破 70 并处于扩张期（非高位久居或开始收缩），同时 1小时级别 RSI 连续两根 K线稳住 60 以上，且最核心的 15分钟级别 RSI 突破 55 并且呈现连续上涨态势时触发。该起爆算法能够有效地对各个周期的共振突破点进行监测过滤，寻找极高确定性的右侧动能。信号触发后会在主图表底部印刻醒目的黄色向上标识。</p>
              </div>
+             <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+                 <span className="text-emerald-400">✅ 抄底预警</span>
+               </h4>
+               <p className="text-sm text-gray-400">当标的在 4小时级别极度超卖（RSI 跌破 30），且在 1小时级别拒绝创新低并强势从 30 以下反抽突破 40，同时在核心的 15分钟级别被强力向上击穿 RSI 55 边界时触发。该算法旨在过滤下跌途中的“死猫跳”，精准捕捉跌势穷竭后的高胜率反转拐点。</p>
+             </div>
           </div>
           <p className="text-xs text-gray-500 font-mono">
             提示：点击列表中任意搜索结果，所有相关联的实时金融图表将会瞬间同步为您展示该币种的微观走势与核心指标。

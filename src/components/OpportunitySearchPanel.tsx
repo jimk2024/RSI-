@@ -9,7 +9,7 @@ interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "explosion";
+  type: "explosion" | "bottom_fishing";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -92,8 +92,10 @@ export function OpportunitySearchPanel() {
             if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null && r15_prev2 !== undefined && r15_prev2 !== null) {
               // 15M线在55以上且连续上涨
               const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
+              // 15M 强力击穿 55
+              const is15mBottom = r15 > 55 && r15_prev <= 55;
 
-              if (is15mBullish) {
+              if (is15mBullish || is15mBottom) {
                 await new Promise(r => setTimeout(r, 100)); // Delay before 1H
                 const data1h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=50`);
                 if (data1h && data1h.length > 0) {
@@ -105,8 +107,15 @@ export function OpportunitySearchPanel() {
                   if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
                     // 1H线连续2个K线超越60 (当前和前一个)
                     const is1hBullish = r1h > 60 && r1h_prev > 60;
+                    
+                    // 1H 拒绝创新低，从30以下向上突破40
+                    let has1hBelow30 = false;
+                    for (let k = Math.max(0, rsi1hList.length - 6); k < rsi1hList.length - 1; k++) {
+                      if (rsi1hList[k] < 30) has1hBelow30 = true;
+                    }
+                    const is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
 
-                    if (is1hBullish) {
+                    if (is1hBullish || is1hBottom) {
                       await new Promise(r => setTimeout(r, 100)); // Delay before 4H
                       const data4h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
                       if (data4h && data4h.length > 0) {
@@ -119,8 +128,14 @@ export function OpportunitySearchPanel() {
                         if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
                           // 4H线刚确认上到70且未收缩 (当前>=70, 并且前值严格<70，确保只抓取最初爆破的瞬间，防止高位钝化后追涨)
                           const is4hBullish = r4h >= 70 && r4h_prev < 70;
+                          
+                          // 4H 极度超卖 < 30
+                          const is4hBottom = r4h < 30;
+                          
+                          const isExplosion = is15mBullish && is1hBullish && is4hBullish;
+                          const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
 
-                          if (is4hBullish) {
+                          if (isExplosion || isBottomFishing) {
                             // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
                             const currentClose = closes15m[latestIdx];
                             const currentOpen = opens15m[latestIdx];
@@ -139,15 +154,18 @@ export function OpportunitySearchPanel() {
                             const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
                             const isBullishCandle = currentClose > currentOpen;
 
+                            const validExplosion = isExplosion && isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25;
+                            const validBottom = isBottomFishing && isBullishCandle && volSurgeMultiplier >= 1.2;
+
                             // Additional filters: must be a bullish candle, must be above EMA20, and must have a volume surge
-                            if (isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25) {
+                            if (validExplosion || validBottom) {
                               opps.push({
                                 symbol,
                                 rsi: r15,
                                 rsi1h: r1h,
                                 rsi4h: r4h,
-                                type: "explosion",
-                                typeLabel: "起爆预警",
+                                type: validExplosion ? "explosion" : "bottom_fishing",
+                                typeLabel: validExplosion ? "起爆预警" : "抄底预警",
                                 volSurgeMultiplier,
                                 aboveEma20,
                                 isBullishCandle
@@ -254,10 +272,15 @@ export function OpportunitySearchPanel() {
                     <Sparkles size={10} className="text-yellow-400" /> 起爆预警
                   </span>
                 )}
+                {opp.type === "bottom_fishing" && (
+                  <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-950/50 border border-emerald-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
+                    <TrendingUp size={10} className="text-emerald-400" /> {opp.typeLabel}
+                  </span>
+                )}
               </div>
               
               {/* Show auxiliary parameters for live trading verification */}
-              {opp.type === "explosion" && (
+              {(opp.type === "explosion" || opp.type === "bottom_fishing") && (
                 <div className="flex flex-wrap gap-1.5 mt-0.5">
                   {/* Volume surge check */}
                   {opp.volSurgeMultiplier !== undefined && (
