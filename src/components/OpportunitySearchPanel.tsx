@@ -22,11 +22,11 @@ export function OpportunitySearchPanel() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [scannedCount, setScannedCount] = useState(0);
   const [totalToScan, setTotalToScan] = useState(0);
-  const [countdown, setCountdown] = useState(600);
+  const [countdown, setCountdown] = useState(300);
   const [activeTab, setActiveTab] = useState<"all" | "explosion" | "extreme_buy" | "extreme_sell">("all");
   
   const isSearchingRef = useRef(false);
-  const countdownRef = useRef(600);
+  const countdownRef = useRef(300);
 
   const startSearch = async () => {
     if (isSearchingRef.current) return;
@@ -35,8 +35,8 @@ export function OpportunitySearchPanel() {
     setOpportunities([]);
     setScannedCount(0);
     
-    countdownRef.current = 600;
-    setCountdown(600);
+    countdownRef.current = 300;
+    setCountdown(300);
 
     const swapPairsRaw = Object.values(instruments)
       .filter((inst: any) => inst.instId.endsWith("-USDT-SWAP"))
@@ -241,16 +241,6 @@ export function OpportunitySearchPanel() {
             <span>{Math.floor(countdown / 60)}分{(countdown % 60).toString().padStart(2, '0')}秒</span>
           )}
         </div>
-      </div>
-
-      {/* Strategy Indicator Tabs */}
-      <div className="flex items-center bg-[#1e2329] p-0.5 rounded border border-[#2b2f36] text-[10px] select-none shrink-0">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`flex-1 text-center py-1 rounded transition-colors bg-yellow-600/80 text-white font-bold`}
-        >
-          🚀 预警 ({opportunities.length})
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2.5 pr-0.5">

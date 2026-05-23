@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChartWidget } from "./ChartWidget";
+import { useAppContext } from "../AppContext";
 
 export function ChartGrid() {
   const [maximizedChart, setMaximizedChart] = useState<string | null>(null);
+  const { overrideChartSymbol } = useAppContext();
+
+  useEffect(() => {
+    if (overrideChartSymbol) {
+      setMaximizedChart(overrideChartSymbol.id);
+    }
+  }, [overrideChartSymbol]);
 
   const defaultPairs = [
     "BTC-USDT-SWAP",
