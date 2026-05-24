@@ -3,50 +3,36 @@ import { ChartWidget } from "./ChartWidget";
 import { useAppContext } from "../AppContext";
 
 export function ChartGrid() {
-  const [maximizedChart, setMaximizedChart] = useState<string | null>(null);
+  const [mainChartId, setMainChartId] = useState<string>("chart-0");
   const { overrideChartSymbol } = useAppContext();
 
   useEffect(() => {
     if (overrideChartSymbol) {
-      setMaximizedChart(overrideChartSymbol.id);
+      setMainChartId(overrideChartSymbol.id);
     }
   }, [overrideChartSymbol]);
 
   const defaultPairs = [
     "BTC-USDT-SWAP",
     "ETH-USDT-SWAP",
-    "SOL-USDT-SWAP",
-    "DOGE-USDT-SWAP",
-    "XRP-USDT-SWAP",
-    "ADA-USDT-SWAP"
+    "SOL-USDT-SWAP"
   ];
 
   return (
-    <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full">
+    <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full min-h-0">
       {defaultPairs.map((pair, idx) => {
         const id = `chart-${idx}`;
-        const isMaximized = maximizedChart === id;
+        const isMain = mainChartId === id;
         
-        let className = "";
-        
-        if (maximizedChart !== null) {
-          if (isMaximized) {
-            className = "col-span-2 row-span-2 row-start-1 col-start-1";
-          } else {
-            // Find if this is one of the first 2 non-maximized charts
-            const otherPairs = defaultPairs.filter((p, i) => `chart-${i}` !== maximizedChart);
-            const otherIndex = otherPairs.indexOf(pair);
-            if (otherIndex >= 2) return null; // hide charts after the first 2
-          }
-        }
+        let className = isMain ? "col-span-2 row-span-2 order-first" : "col-span-1 row-span-1";
 
         return (
           <ChartWidget 
-            key={pair} // using pair as key ensures it doesn't remount if order changes
+            key={id}
             id={id} 
             defaultSymbol={pair} 
-            isMaximized={isMaximized}
-            onToggleMaximize={() => setMaximizedChart(isMaximized ? null : id)}
+            isMaximized={isMain}
+            onToggleMaximize={() => setMainChartId(id)}
             className={className}
           />
         );
