@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createChart, IChartApi, IPriceLine, ISeriesApi, LineStyle, TickMarkType, Time } from "lightweight-charts";
+import { createChart, IChartApi, IPriceLine, ISeriesApi, LineStyle, TickMarkType, Time, PriceScaleMode } from "lightweight-charts";
 import { okxPublicFetch, okxPrivateFetch } from "../lib/api";
 import { calculateRSI, calculateEMA } from "../lib/indicators";
 import { useAppContext, InstrumentInfo } from "../AppContext";
@@ -54,6 +54,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   // Try to use ref to hold chart state instead of React state to avoid re-render loops
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const percentageSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const ema50SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema200SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
@@ -108,6 +109,11 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       rightPriceScale: {
         borderColor: "#334155",
       },
+      leftPriceScale: {
+        visible: isMaximized,
+        borderColor: "#334155",
+        mode: PriceScaleMode.Percentage,
+      },
     });
     
     chartRef.current = chart;
@@ -121,6 +127,15 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     });
     candleSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0.3 } });
     candleSeriesRef.current = candleSeries;
+
+    const percentageSeries = chart.addLineSeries({
+      priceScaleId: "left",
+      lineWidth: 0,
+      crosshairMarkerVisible: false,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+    percentageSeriesRef.current = percentageSeries;
 
     const volumeSeries = chart.addHistogramSeries({
       color: "#3b82f6",
@@ -242,6 +257,16 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   useEffect(() => {
     ema200SeriesRef.current?.applyOptions({ visible: showEma200 });
   }, [showEma200]);
+
+  useEffect(() => {
+    if (chartRef.current) {
+      chartRef.current.applyOptions({
+        leftPriceScale: {
+          visible: !!isMaximized,
+        }
+      });
+    }
+  }, [isMaximized]);
 
   useEffect(() => {
     if (!isMaximized) {
@@ -416,6 +441,12 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           color: parseFloat(d[4]) >= parseFloat(d[1]) ? "rgba(16, 185, 129, 0.4)" : "rgba(244, 63, 94, 0.4)"
         }));
 
+        const percentageData = candleData.map(d => ({
+          time: d.time,
+          value: d.close,
+        }));
+        percentageSeriesRef.current?.setData(percentageData);
+        
         candleSeriesRef.current?.setData(candleData);
         volumeSeriesRef.current?.setData(vData);
 

@@ -22,24 +22,32 @@ export function ChartGrid() {
   ];
 
   return (
-    <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full relative">
+    <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full">
       {defaultPairs.map((pair, idx) => {
         const id = `chart-${idx}`;
         const isMaximized = maximizedChart === id;
         
-        // If another chart is maximized, hide this one
-        if (maximizedChart !== null && !isMaximized) {
-          return null;
+        let className = "";
+        
+        if (maximizedChart !== null) {
+          if (isMaximized) {
+            className = "col-span-2 row-span-2 order-first";
+          } else {
+            // Find if this is one of the first 2 non-maximized charts
+            const otherPairs = defaultPairs.filter((p, i) => `chart-${i}` !== maximizedChart);
+            const otherIndex = otherPairs.indexOf(pair);
+            if (otherIndex >= 2) return null; // hide charts after the first 2
+          }
         }
 
         return (
           <ChartWidget 
-            key={idx} 
+            key={pair} // using pair as key ensures it doesn't remount if order changes
             id={id} 
             defaultSymbol={pair} 
             isMaximized={isMaximized}
             onToggleMaximize={() => setMaximizedChart(isMaximized ? null : id)}
-            className={isMaximized ? "absolute inset-0 z-50 bg-[#0b0e11]" : ""}
+            className={className}
           />
         );
       })}
