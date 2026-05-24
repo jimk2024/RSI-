@@ -489,10 +489,10 @@ export function AbnormalMonitoringPanel() {
       </div>
 
       {/* 4 horizontal columns separated by vertical divider lines */}
-      <div className="flex flex-row items-stretch gap-0 flex-1 min-h-0 overflow-hidden mt-1 bg-[#1a1f26]/40 p-1.5 rounded-md border border-[#2b2f36]">
+      <div className="flex flex-row items-stretch gap-2 flex-1 min-h-0 overflow-hidden mt-2">
         
         {/* Column 1: OI Spike (OI 暴增) */}
-        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Zap size={11} className="text-[#3b82f6]" />
@@ -551,10 +551,10 @@ export function AbnormalMonitoringPanel() {
         </div>
 
         {/* Divider 1-2 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
 
         {/* Column 2: Extreme Funding Rate (极端资金费率) */}
-        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Percent size={11} className="text-[#00b07c]" />
@@ -615,10 +615,10 @@ export function AbnormalMonitoringPanel() {
         </div>
 
         {/* Divider 2-3 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
 
         {/* Column 3: Cascading Liquidation (连环爆仓潮) */}
-        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Flame size={11} className="text-orange-500" />
@@ -679,10 +679,10 @@ export function AbnormalMonitoringPanel() {
         </div>
 
         {/* Divider 3-4 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
 
         {/* Column 4: Spot-Futures Basis Deviation (期现基差偏离) */}
-        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Scale size={11} className="text-purple-400" />
