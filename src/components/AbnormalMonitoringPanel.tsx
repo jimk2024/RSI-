@@ -284,7 +284,7 @@ export function AbnormalMonitoringPanel() {
           ]
         };
 
-        setOiEvents(prev => [newEvent, ...prev].slice(0, 10));
+        setOiEvents(prev => [newEvent, ...prev].slice(0, 3));
         playAlertSound("oi");
         addLog(`[异动监控] ${symbol}-SWAP 触发 OI 爆增: +${oiChange}% (15min)`, "info");
 
@@ -309,7 +309,7 @@ export function AbnormalMonitoringPanel() {
           ]
         };
 
-        setFundingEvents(prev => [newEvent, ...prev].slice(0, 10));
+        setFundingEvents(prev => [newEvent, ...prev].slice(0, 3));
         playAlertSound("funding");
         addLog(`[异动监控] ${symbol}-SWAP 资金费率极端: ${annualizedRate.toFixed(1)}%`, "error");
 
@@ -333,7 +333,7 @@ export function AbnormalMonitoringPanel() {
           ]
         };
 
-        setLiqEvents(prev => [newEvent, ...prev].slice(0, 10));
+        setLiqEvents(prev => [newEvent, ...prev].slice(0, 3));
         playAlertSound("liquidation");
         addLog(`[异动监控] ${symbol}-SWAP 连环爆仓潮: $${sizeMillion}M 的仓位被强制平仓`, "success");
 
@@ -360,7 +360,7 @@ export function AbnormalMonitoringPanel() {
           ]
         };
 
-        setBasisEvents(prev => [newEvent, ...prev].slice(0, 10));
+        setBasisEvents(prev => [newEvent, ...prev].slice(0, 3));
         playAlertSound("basis");
         addLog(`[异动监控] ${symbol} 期现基差瞬时发生偏离: +${deviation}%`, "info");
       }
@@ -488,8 +488,8 @@ export function AbnormalMonitoringPanel() {
         </div>
       </div>
 
-      {/* 4 horizontal columns separated by vertical divider lines */}
-      <div className="flex flex-row items-stretch gap-2 flex-1 min-h-0 overflow-hidden mt-2">
+      {/* 4 horizontal columns separated by gap */}
+      <div className="flex flex-row items-stretch gap-4 flex-1 min-h-0 overflow-hidden mt-2">
         
         {/* Column 1: OI Spike (OI 暴增) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
@@ -501,7 +501,7 @@ export function AbnormalMonitoringPanel() {
             <div className="text-[9px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1.5 rounded-sm">OI Spike</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
             15分钟内: OI增幅 ≥ {oiThreshold}% 伴随价格盘整(±0.5%)且量能放大
           </div>
 
@@ -518,7 +518,7 @@ export function AbnormalMonitoringPanel() {
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
-                    className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-[#3b82f6]/30 rounded text-[10px] transition-colors relative"
+                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -550,8 +550,7 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
-        {/* Divider 1-2 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
+
 
         {/* Column 2: Extreme Funding Rate (极端资金费率) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
@@ -563,7 +562,7 @@ export function AbnormalMonitoringPanel() {
             <div className="text-[9px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1.5 rounded-sm">Funding</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
             当前年化费率 ≥ +{fundingThreshold}% 或 ≤ -{fundingThreshold}% (结算期 ≥ 0.1%)
           </div>
 
@@ -580,7 +579,7 @@ export function AbnormalMonitoringPanel() {
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
-                    className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-[#00b07c]/30 rounded text-[10px] transition-colors relative"
+                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -614,8 +613,7 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
-        {/* Divider 2-3 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
+
 
         {/* Column 3: Cascading Liquidation (连环爆仓潮) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
@@ -627,7 +625,7 @@ export function AbnormalMonitoringPanel() {
             <div className="text-[9px] text-orange-500 font-mono bg-orange-500/10 px-1.5 rounded-sm">Liquidation</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
             1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 瞬时插针偏离 &gt;1.5%
           </div>
 
@@ -644,7 +642,7 @@ export function AbnormalMonitoringPanel() {
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
-                    className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-orange-500/30 rounded text-[10px] transition-colors relative"
+                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -678,8 +676,7 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
-        {/* Divider 3-4 */}
-        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-50" />
+
 
         {/* Column 4: Spot-Futures Basis Deviation (期现基差偏离) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
@@ -691,7 +688,7 @@ export function AbnormalMonitoringPanel() {
             <div className="text-[9px] text-purple-400 font-mono bg-purple-400/10 px-1.5 rounded-sm">Basis</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
             基差溢价 (Fprice - Sprice)/Sprice 偏离正常溢价均值 ≥ {basisThreshold}%
           </div>
 
@@ -708,7 +705,7 @@ export function AbnormalMonitoringPanel() {
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
-                    className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-purple-500/30 rounded text-[10px] transition-colors relative"
+                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 

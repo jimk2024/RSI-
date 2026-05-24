@@ -13,13 +13,13 @@ export function TradeSettingsPanel() {
   };
 
   return (
-    <div className="shrink-0 bg-[#161a1e] border border-[#2b2f36] rounded-lg p-4 flex flex-col gap-4 overflow-hidden min-h-0 h-full">
-      <div className="flex items-center gap-2 mb-1 shrink-0">
+    <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-4 flex flex-col gap-4">
+      <div className="flex items-center gap-2 mb-1">
         <div className="w-2 h-5 bg-[#f0b90b] rounded-full"></div>
         <h2 className="text-sm font-bold tracking-wider">交易参数</h2>
       </div>
 
-      <div className="space-y-3 flex-1 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+      <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col">
             <label className="text-[10px] text-gray-500 uppercase block mb-1">仓位模式</label>
