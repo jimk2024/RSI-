@@ -61,9 +61,9 @@ export function StrategyLibraryPanel() {
         <h3 className="font-bold text-sm">策略库与回测 (Strategy Library)</h3>
       </div>
       
-      <div className="grid grid-cols-[256px_minmax(0,1fr)_256px] flex-1 min-h-0 min-w-0 pt-1">
+      <div className="flex flex-1 min-h-0 pt-1">
         {/* Left: Strategy List */}
-        <div className="flex flex-col min-h-0 border-r border-[#2b2f36] pr-3">
+        <div className="w-64 flex flex-col min-h-0 border-r border-[#2b2f36] pr-4 shrink-0">
           <div className="text-xs text-gray-500 mb-2">选择常用策略</div>
           <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
             {STRATEGIES.map(strat => (
@@ -86,7 +86,7 @@ export function StrategyLibraryPanel() {
         </div>
 
         {/* Middle: Strategy Parameters */}
-        <div className="flex flex-col min-h-0 border-r border-[#2b2f36] px-3">
+        <div className="flex-1 flex flex-col min-h-0 border-r border-[#2b2f36] px-4">
           <div className="text-xs text-gray-500 mb-2">参数调优</div>
           <div className="flex-1 overflow-y-auto pr-1">
             <div className="space-y-3">
@@ -118,7 +118,7 @@ export function StrategyLibraryPanel() {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex flex-col min-h-0 pl-3 pt-2 gap-3">
+        <div className="w-64 flex flex-col min-h-0 pl-4 pt-1 gap-3 shrink-0">
           <div className="text-[11px] leading-relaxed text-gray-400 text-center mb-2 px-1 break-words whitespace-normal">
             当前处于模拟阶段，可以先进行历史数据回测或注入模拟盘环境运行寻找参数最优解。
           </div>
