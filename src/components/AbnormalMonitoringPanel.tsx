@@ -398,92 +398,101 @@ export function AbnormalMonitoringPanel() {
             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isActive ? 'bg-red-400' : 'bg-gray-400'}`}></span>
             <span className={`relative inline-flex rounded-full h-2 w-2 ${isActive ? 'bg-red-500' : 'bg-gray-500'}`}></span>
           </span>
-          <h3 className="font-bold text-xs tracking-wider text-white flex items-center gap-1.5 font-sans">
-            <Activity size={14} className="text-[#3b82f6] shrink-0" />
-            <span>实时异动监测柜 (Dynamic Exchange Anomaly Monitor)</span>
+          <h3 className="font-bold text-sm tracking-wider text-gray-200 flex items-center gap-1.5 font-sans">
+            <Activity size={16} className="text-[#3b82f6] shrink-0" />
+            <span>实时异动监测柜</span>
+            <span className="text-gray-500 text-xs font-normal">Dynamic Exchange Anomaly Monitor</span>
           </h3>
         </div>
 
         {/* Quick parameters controller */}
-        <div className="flex items-center gap-4 text-[10px] text-gray-400 bg-[#1e2329] px-2 py-1 rounded border border-[#2b2f36]/60">
-          <div className="flex items-center gap-1">
-            <span>OI阈值:</span>
-            <input 
-              type="number" 
-              step="0.5" 
-              value={oiThreshold} 
-              onChange={(e) => setOiThreshold(Math.max(0.1, parseFloat(e.target.value) || 1))}
-              className="w-10 bg-black/40 text-center border border-[#2b2f36] rounded text-[#3b82f6] font-bold py-0.5 outline-none"
-            />
-            <span>%</span>
+        <div className="flex items-center gap-3 text-xs text-gray-400 bg-[#161a1e] px-3 py-1.5 rounded border border-[#2b2f36]/40">
+          <div className="flex items-center gap-1.5">
+            <span>OI:</span>
+            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-[#3b82f6]/50 transition-colors">
+              <input 
+                type="number" 
+                step="0.5" 
+                value={oiThreshold} 
+                onChange={(e) => setOiThreshold(Math.max(0.1, parseFloat(e.target.value) || 1))}
+                className="w-9 bg-transparent text-center text-[#3b82f6] font-bold outline-none hide-arrows"
+              />
+              <span className="text-[10px] text-gray-600">%</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 border-l border-[#2b2f36] pl-2">
-            <span>年度资费:</span>
-            <input 
-              type="number" 
-              step="10" 
-              value={fundingThreshold} 
-              onChange={(e) => setFundingThreshold(Math.max(10, parseFloat(e.target.value) || 10))}
-              className="w-11 bg-black/40 text-center border border-[#2b2f36] rounded text-[#00b07c] font-bold py-0.5 outline-none"
-            />
-            <span>%</span>
+          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
+            <span>极值费率:</span>
+            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-[#00b07c]/50 transition-colors">
+              <input 
+                type="number" 
+                step="10" 
+                value={fundingThreshold} 
+                onChange={(e) => setFundingThreshold(Math.max(10, parseFloat(e.target.value) || 10))}
+                className="w-10 bg-transparent text-center text-[#00b07c] font-bold outline-none hide-arrows"
+              />
+              <span className="text-[10px] text-gray-600">%</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 border-l border-[#2b2f36] pl-2">
-            <span>单批爆仓:</span>
-            <input 
-              type="number" 
-              step="0.5" 
-              value={liqThreshold} 
-              onChange={(e) => setLiqThreshold(Math.max(0.5, parseFloat(e.target.value) || 1))}
-              className="w-9 bg-black/40 text-center border border-[#2b2f36] rounded text-orange-400 font-bold py-0.5 outline-none"
-            />
-            <span>M$</span>
+          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
+            <span>连环爆仓:</span>
+            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-orange-500/50 transition-colors">
+              <input 
+                type="number" 
+                step="0.5" 
+                value={liqThreshold} 
+                onChange={(e) => setLiqThreshold(Math.max(0.5, parseFloat(e.target.value) || 1))}
+                className="w-9 bg-transparent text-center text-orange-400 font-bold outline-none hide-arrows"
+              />
+              <span className="text-[10px] text-gray-600">M$</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 border-l border-[#2b2f36] pl-2">
-            <span>基差偏离:</span>
-            <input 
-              type="number" 
-              step="0.05" 
-              value={basisThreshold} 
-              onChange={(e) => setBasisThreshold(Math.max(0.05, parseFloat(e.target.value) || 0.1))}
-              className="w-10 bg-black/40 text-center border border-[#2b2f36] rounded text-purple-400 font-bold py-0.5 outline-none"
-            />
-            <span>%</span>
+          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
+            <span>期现基差:</span>
+            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-purple-500/50 transition-colors">
+              <input 
+                type="number" 
+                step="0.05" 
+                value={basisThreshold} 
+                onChange={(e) => setBasisThreshold(Math.max(0.05, parseFloat(e.target.value) || 0.1))}
+                className="w-9 bg-transparent text-center text-purple-400 font-bold outline-none hide-arrows"
+              />
+              <span className="text-[10px] text-gray-600">%</span>
+            </div>
           </div>
         </div>
 
         {/* Action button triggers details */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <button 
             onClick={toggleAlarm}
-            title={alarmEnabled ? "静音警报声" : "开启实时警报声 (当有严重异动时提示)"}
-            className={`flex items-center justify-center h-6 w-6 rounded border transition-all cursor-pointer ${
+            title={alarmEnabled ? "静音警报声" : "开启警报声"}
+            className={`flex items-center justify-center p-1.5 rounded transition-colors cursor-pointer ${
               alarmEnabled 
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/25' 
-                : 'bg-[#1e2329] border-[#2b2f36] text-gray-500 hover:text-gray-300'
+                ? 'bg-[#1e2329] text-amber-400 hover:bg-[#2b2f36]' 
+                : 'bg-[#1e2329]/50 text-gray-500 hover:bg-[#1e2329]'
             }`}
           >
-            {alarmEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
+            {alarmEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
           
           <button 
             onClick={toggleActive}
-            className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded border font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-medium transition-colors cursor-pointer ${
               isActive 
-                ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20' 
-                : 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
+                ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
+                : 'bg-[#1e2329] text-gray-400 hover:bg-[#2b2f36]'
             }`}
           >
-            {isActive ? <Pause size={10} /> : <Play size={10} />}
-            <span>{isActive ? '监控中' : '暂停中'}</span>
+            {isActive ? <Pause size={12} /> : <Play size={12} />}
+            <span>{isActive ? '监控中' : '已暂停'}</span>
           </button>
           
           <button 
             onClick={clearAllLogs}
-            className="flex items-center gap-1 text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-1 rounded transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-xs bg-[#1e2329] hover:bg-[#2b2f36] text-gray-400 hover:text-gray-200 px-3 py-1.5 rounded transition-colors cursor-pointer"
           >
-            <Trash2 size={10} />
-            <span>清除</span>
+            <Trash2 size={12} />
+            <span>清空</span>
           </button>
         </div>
       </div>
@@ -493,15 +502,15 @@ export function AbnormalMonitoringPanel() {
         
         {/* Column 1: OI Spike (OI 暴增) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
-          <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
+          <div className="flex items-center justify-between xl:mb-2 mb-1.5 pb-1 border-b border-[#2b2f36]/40">
             <div className="flex items-center gap-1">
-              <Zap size={11} className="text-[#3b82f6]" />
-              <span className="text-[11px] font-bold text-white tracking-wide">1. OI 暴增(未平仓量)</span>
+              <Zap size={14} className="text-[#3b82f6]" />
+              <span className="text-xs font-bold text-gray-200 tracking-wide">1. OI暴增(未平仓量)</span>
             </div>
-            <div className="text-[9px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1.5 rounded-sm">OI Spike</div>
+            <div className="text-[10px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1.5 py-0.5 rounded-sm">OI Spike</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
+          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
             15分钟内: OI增幅 ≥ {oiThreshold}% 伴随价格盘整(±0.5%)且量能放大
           </div>
 
@@ -520,7 +529,7 @@ export function AbnormalMonitoringPanel() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
+                    className="py-1.5 border-b border-[#2b2f36]/40 last:border-0 text-[10px] relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -556,15 +565,15 @@ export function AbnormalMonitoringPanel() {
 
         {/* Column 2: Extreme Funding Rate (极端资金费率) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
-          <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
+          <div className="flex items-center justify-between xl:mb-2 mb-1.5 pb-1 border-b border-[#2b2f36]/40">
             <div className="flex items-center gap-1">
-              <Percent size={11} className="text-[#00b07c]" />
-              <span className="text-[11px] font-bold text-white tracking-wide">2. 极端资金费率(Funding)</span>
+              <Percent size={14} className="text-[#00b07c]" />
+              <span className="text-xs font-bold text-gray-200 tracking-wide">2. 极端资金费率(Funding)</span>
             </div>
-            <div className="text-[9px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1.5 rounded-sm">Funding</div>
+            <div className="text-[10px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1.5 py-0.5 rounded-sm">Funding</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
+          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
             当前年化费率 ≥ +{fundingThreshold}% 或 ≤ -{fundingThreshold}% (结算期 ≥ 0.1%)
           </div>
 
@@ -583,7 +592,7 @@ export function AbnormalMonitoringPanel() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
+                    className="py-1.5 border-b border-[#2b2f36]/40 last:border-0 text-[10px] relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -621,15 +630,15 @@ export function AbnormalMonitoringPanel() {
 
         {/* Column 3: Cascading Liquidation (连环爆仓潮) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
-          <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
+          <div className="flex items-center justify-between xl:mb-2 mb-1.5 pb-1 border-b border-[#2b2f36]/40">
             <div className="flex items-center gap-1">
-              <Flame size={11} className="text-orange-500" />
-              <span className="text-[11px] font-bold text-white tracking-wide">3. 连环爆仓潮(Liquidation)</span>
+              <Flame size={14} className="text-[#f59e0b]" />
+              <span className="text-xs font-bold text-gray-200 tracking-wide">3. 连环爆仓(Liquidation)</span>
             </div>
-            <div className="text-[9px] text-orange-500 font-mono bg-orange-500/10 px-1.5 rounded-sm">Liquidation</div>
+            <div className="text-[10px] text-[#f59e0b] font-mono bg-[#f59e0b]/10 px-1.5 py-0.5 rounded-sm">Liquidation</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
+          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
             1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 瞬时插针偏离 &gt;1.5%
           </div>
 
@@ -648,7 +657,7 @@ export function AbnormalMonitoringPanel() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
+                    className="py-1.5 border-b border-[#2b2f36]/40 last:border-0 text-[10px] relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
@@ -686,15 +695,15 @@ export function AbnormalMonitoringPanel() {
 
         {/* Column 4: Spot-Futures Basis Deviation (期现基差偏离) */}
         <div className="flex-1 flex flex-col min-h-0 h-full relative overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
-          <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
+          <div className="flex items-center justify-between xl:mb-2 mb-1.5 pb-1 border-b border-[#2b2f36]/40">
             <div className="flex items-center gap-1">
-              <Scale size={11} className="text-purple-400" />
-              <span className="text-[11px] font-bold text-white tracking-wide">4. 期现基差偏离(Basis)</span>
+              <Scale size={14} className="text-[#a855f7]" />
+              <span className="text-xs font-bold text-gray-200 tracking-wide">4. 期现基差偏离(Basis)</span>
             </div>
-            <div className="text-[9px] text-purple-400 font-mono bg-purple-400/10 px-1.5 rounded-sm">Basis</div>
+            <div className="text-[10px] text-[#a855f7] font-mono bg-[#a855f7]/10 px-1.5 py-0.5 rounded-sm">Basis</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 p-1.5 rounded bg-[#161a1e]">
+          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
             基差溢价 (Fprice - Sprice)/Sprice 偏离正常溢价均值 ≥ {basisThreshold}%
           </div>
 
@@ -713,7 +722,7 @@ export function AbnormalMonitoringPanel() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
+                    className="py-1.5 border-b border-[#2b2f36]/40 last:border-0 text-[10px] relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
                       <button 
