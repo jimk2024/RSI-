@@ -12,9 +12,10 @@ interface ChartWidgetProps {
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, className = "" }: ChartWidgetProps) {
+export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, className = "", style }: ChartWidgetProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const { apiConfig, addLog, triggerRefresh, refreshTrigger, tradeConfig, instruments, positions, orders, overrideChartSymbol, setOverrideChartSymbol, setActiveMainSymbol } = useAppContext();
   
@@ -858,7 +859,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   const containerClasses = `bg-[#161a1e] border border-[#2b2f36] rounded-lg p-2 flex flex-col h-full min-h-0 transition-all duration-300 ${className}`;
 
   return (
-    <div className={containerClasses}>
+    <div className={containerClasses} style={style}>
       {/* Header - Config */}
       <div className="flex justify-between items-center mb-1 shrink-0 relative">
         <div className="flex items-center gap-2">

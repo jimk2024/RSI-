@@ -23,8 +23,6 @@ export function ChartGrid() {
       {defaultPairs.map((pair, idx) => {
         const id = `chart-${idx}`;
         const isMain = mainChartId === id;
-        
-        let className = isMain ? "col-span-2 row-span-2 order-first" : "col-span-1 row-span-1";
 
         return (
           <ChartWidget 
@@ -33,7 +31,11 @@ export function ChartGrid() {
             defaultSymbol={pair} 
             isMaximized={isMain}
             onToggleMaximize={() => setMainChartId(id)}
-            className={className}
+            style={{ 
+              gridColumn: isMain ? 'span 2 / span 2' : 'span 1 / span 1',
+              gridRow: isMain ? 'span 2 / span 2' : 'span 1 / span 1',
+              order: isMain ? -1 : 0
+            }}
           />
         );
       })}
