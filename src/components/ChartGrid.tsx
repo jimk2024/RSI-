@@ -16,7 +16,7 @@ export function ChartGrid() {
   return (
     <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full min-h-0">
       <ChartWidget 
-        id="main-chart" 
+        id="chart-0" 
         defaultSymbol={activeSymbol} 
         isMaximized={true}
         style={{ 
