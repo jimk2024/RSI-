@@ -7,7 +7,7 @@ import {
   Scale, 
   Percent, 
   Flame, 
-  Info 
+  HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAppContext } from "../AppContext";
@@ -327,12 +327,14 @@ export function AbnormalMonitoringPanel() {
             <div className="flex items-center gap-1">
               <Zap size={14} className="text-[#3b82f6]" />
               <span className="text-xs font-bold text-gray-200 tracking-wide">1. OI暴增(未平仓量)</span>
+              <div className="group relative flex items-center ml-1">
+                <HelpCircle size={12} className="text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-[#1e2329] border border-[#2b2f36] text-gray-400 text-[10px] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                  15分钟内: OI增幅 ≥ {oiThreshold}% 伴随价格盘整(±0.5%)且量能放大
+                </div>
+              </div>
             </div>
             <div className="text-[10px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1.5 py-0.5 rounded-sm">OI Spike</div>
-          </div>
-          
-          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
-            15分钟内: OI增幅 ≥ {oiThreshold}% 伴随价格盘整(±0.5%)且量能放大
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
@@ -390,12 +392,14 @@ export function AbnormalMonitoringPanel() {
             <div className="flex items-center gap-1">
               <Percent size={14} className="text-[#00b07c]" />
               <span className="text-xs font-bold text-gray-200 tracking-wide">2. 极端资金费率(Funding)</span>
+              <div className="group relative flex items-center ml-1">
+                <HelpCircle size={12} className="text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-[#1e2329] border border-[#2b2f36] text-gray-400 text-[10px] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                  当前年化费率 ≥ +{fundingThreshold}% 或 ≤ -{fundingThreshold}% (结算期 ≥ 0.1%)
+                </div>
+              </div>
             </div>
             <div className="text-[10px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1.5 py-0.5 rounded-sm">Funding</div>
-          </div>
-          
-          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
-            当前年化费率 ≥ +{fundingThreshold}% 或 ≤ -{fundingThreshold}% (结算期 ≥ 0.1%)
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
@@ -455,12 +459,14 @@ export function AbnormalMonitoringPanel() {
             <div className="flex items-center gap-1">
               <Flame size={14} className="text-[#f59e0b]" />
               <span className="text-xs font-bold text-gray-200 tracking-wide">3. 连环爆仓(Liquidation)</span>
+              <div className="group relative flex items-center ml-1">
+                <HelpCircle size={12} className="text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-[#1e2329] border border-[#2b2f36] text-gray-400 text-[10px] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                  1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 瞬时插针偏离 &gt;1.5%
+                </div>
+              </div>
             </div>
             <div className="text-[10px] text-[#f59e0b] font-mono bg-[#f59e0b]/10 px-1.5 py-0.5 rounded-sm">Liquidation</div>
-          </div>
-          
-          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
-            1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 瞬时插针偏离 &gt;1.5%
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
@@ -520,12 +526,14 @@ export function AbnormalMonitoringPanel() {
             <div className="flex items-center gap-1">
               <Scale size={14} className="text-[#a855f7]" />
               <span className="text-xs font-bold text-gray-200 tracking-wide">4. 期现基差偏离(Basis)</span>
+              <div className="group relative flex items-center ml-1">
+                <HelpCircle size={12} className="text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
+                <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-[#1e2329] border border-[#2b2f36] text-gray-400 text-[10px] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                  基差溢价 (Fprice - Sprice)/Sprice 偏离正常溢价均值 ≥ {basisThreshold}%
+                </div>
+              </div>
             </div>
             <div className="text-[10px] text-[#a855f7] font-mono bg-[#a855f7]/10 px-1.5 py-0.5 rounded-sm">Basis</div>
-          </div>
-          
-          <div className="text-[10px] text-gray-500 leading-snug mb-2 p-1.5 rounded bg-white/[0.02]">
-            基差溢价 (Fprice - Sprice)/Sprice 偏离正常溢价均值 ≥ {basisThreshold}%
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
