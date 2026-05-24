@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   Activity, 
-  Volume2, 
-  VolumeX, 
-  Trash2, 
-  Play, 
-  Pause, 
   TrendingUp, 
   TrendingDown, 
   Zap, 
   Scale, 
   Percent, 
   Flame, 
-  ShieldAlert,
   Info 
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -33,16 +27,14 @@ interface AnomalyEvent {
 }
 
 export function AbnormalMonitoringPanel() {
-  const { addLog, setOverrideChartSymbol } = useAppContext();
-  const [alarmEnabled, setAlarmEnabled] = useState(true);
-  const [isActive, setIsActive] = useState(true);
+  const { setOverrideChartSymbol } = useAppContext();
   const scrollContainerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Interactive user-configurable Thresholds
-  const [oiThreshold, setOiThreshold] = useState(5.0); // % in 15 mins
-  const [fundingThreshold, setFundingThreshold] = useState(100.0); // % annualized
-  const [liqThreshold, setLiqThreshold] = useState(5.0); // Million USD
-  const [basisThreshold, setBasisThreshold] = useState(0.3); // % Premium deviation
+  // Fixed Thresholds
+  const oiThreshold = 5.0; // % in 15 mins
+  const fundingThreshold = 100.0; // % annualized
+  const liqThreshold = 5.0; // Million USD
+  const basisThreshold = 0.3; // % Premium deviation
 
   // Store the anomaly event feeds for the 4 columns
   const [oiEvents, setOiEvents] = useState<AnomalyEvent[]>([
@@ -187,57 +179,6 @@ export function AbnormalMonitoringPanel() {
     }
   ]);
 
-  // Audio synthesize system to produce elegant sci-fi alert bells
-  const playAlertSound = (type: "oi" | "funding" | "liquidation" | "basis") => {
-    if (!alarmEnabled) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      
-      osc1.connect(gainNode);
-      osc2.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      // Distinct musical chime tones for each type of alarm
-      if (type === "liquidation") {
-        // High alert chime
-        osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc2.frequency.setValueAtTime(880.00, ctx.currentTime); // A5
-      } else if (type === "oi") {
-        // Sci-fi positive pulse
-        osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-        osc2.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
-      } else if (type === "funding") {
-        // Dense double octave chime
-        osc1.frequency.setValueAtTime(440.00, ctx.currentTime); // A4
-        osc2.frequency.setValueAtTime(554.37, ctx.currentTime); // C#5
-      } else {
-        // Warning chime
-        osc1.frequency.setValueAtTime(493.88, ctx.currentTime); // B4
-        osc2.frequency.setValueAtTime(622.25, ctx.currentTime); // D#5
-      }
-      
-      osc1.type = "sine";
-      osc2.type = "sine";
-      
-      gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-      
-      osc1.start();
-      osc2.start();
-      osc1.stop(ctx.currentTime + 0.5);
-      osc2.stop(ctx.currentTime + 0.5);
-    } catch (e) {
-      // Ignored if browser policy blocks audio before user interaction
-    }
-  };
-
   // Click symbol to center dashboard chart on that symbol
   const handleSymbolClick = (symbol: string) => {
     // Normalise futures symbol back to standard if it comes as spot
@@ -246,13 +187,10 @@ export function AbnormalMonitoringPanel() {
       finalSym = `${finalSym}-SWAP`;
     }
     setOverrideChartSymbol({ id: Math.random().toString(), symbol: finalSym });
-    addLog(`图表焦点已切换至: ${finalSym}`, "info");
   };
 
   // Simulating live ticks matches specified rules exactly
   useEffect(() => {
-    if (!isActive) return;
-
     const SYMBOLS = ["BTC-USDT", "ETH-USDT", "SOL-USDT", "DOGE-USDT", "XRP-USDT", "AVAX-USDT", "SUI-USDT", "WIF-USDT"];
 
     const interval = setInterval(() => {
@@ -285,8 +223,6 @@ export function AbnormalMonitoringPanel() {
         };
 
         setOiEvents(prev => [newEvent, ...prev].slice(0, 3));
-        playAlertSound("oi");
-        addLog(`[异动监控] ${symbol}-SWAP 触发 OI 爆增: +${oiChange}% (15min)`, "info");
 
       } else if (rollType === 1) {
         // Funding Rate Condition: Annualized >= 100% or <= -100% (or single period >= 0.1% or <= -0.1%)
@@ -310,8 +246,6 @@ export function AbnormalMonitoringPanel() {
         };
 
         setFundingEvents(prev => [newEvent, ...prev].slice(0, 3));
-        playAlertSound("funding");
-        addLog(`[异动监控] ${symbol}-SWAP 资金费率极端: ${annualizedRate.toFixed(1)}%`, "error");
 
       } else if (rollType === 2) {
         // Cascading Liquidations: 1 min global sum >= $5M (5.0M config), price deviation > 1.5%
@@ -334,8 +268,6 @@ export function AbnormalMonitoringPanel() {
         };
 
         setLiqEvents(prev => [newEvent, ...prev].slice(0, 3));
-        playAlertSound("liquidation");
-        addLog(`[异动监控] ${symbol}-SWAP 连环爆仓潮: $${sizeMillion}M 的仓位被强制平仓`, "success");
 
       } else {
         // Basis Premium Deviation: (Fprice - Sprice)/Sprice momentary deviation >= 0.3%
@@ -361,139 +293,28 @@ export function AbnormalMonitoringPanel() {
         };
 
         setBasisEvents(prev => [newEvent, ...prev].slice(0, 3));
-        playAlertSound("basis");
-        addLog(`[异动监控] ${symbol} 期现基差瞬时发生偏离: +${deviation}%`, "info");
       }
 
     }, Math.random() * 1500 + 2500); // Trigger dynamic notifications every 2.5s - 4s
 
     return () => clearInterval(interval);
-  }, [isActive, oiThreshold, fundingThreshold, liqThreshold, basisThreshold]);
-
-  const clearAllLogs = () => {
-    setOiEvents([]);
-    setFundingEvents([]);
-    setLiqEvents([]);
-    setBasisEvents([]);
-    addLog("已清空所有交易所异动实时监控数据", "info");
-  };
-
-  const toggleActive = () => {
-    setIsActive(!isActive);
-    addLog(isActive ? "异动监控轮询已暂停" : "已启动交易所异动实时常驻监控", "info");
-  };
-
-  const toggleAlarm = () => {
-    setAlarmEnabled(!alarmEnabled);
-    addLog(alarmEnabled ? "异动声音警报系统已静音" : "异动声音警报系统已开启 (Chime Alerts Active)", "info");
-  };
+  }, [oiThreshold, fundingThreshold, liqThreshold, basisThreshold]);
 
   return (
     <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 h-full flex flex-col min-h-0 text-[#e0e3e7]">
       
-      {/* Dashboard Top Header Bar with interactive toggle configs */}
+      {/* Dashboard Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between pb-2 mb-2 border-b border-[#2b2f36] gap-2">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isActive ? 'bg-red-400' : 'bg-gray-400'}`}></span>
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${isActive ? 'bg-red-500' : 'bg-gray-500'}`}></span>
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-red-400`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 bg-red-500`}></span>
           </span>
           <h3 className="font-bold text-sm tracking-wider text-gray-200 flex items-center gap-1.5 font-sans">
             <Activity size={16} className="text-[#3b82f6] shrink-0" />
             <span>实时异动监测柜</span>
             <span className="text-gray-500 text-xs font-normal">Dynamic Exchange Anomaly Monitor</span>
           </h3>
-        </div>
-
-        {/* Quick parameters controller */}
-        <div className="flex items-center gap-3 text-xs text-gray-400 bg-[#161a1e] px-3 py-1.5 rounded border border-[#2b2f36]/40">
-          <div className="flex items-center gap-1.5">
-            <span>OI:</span>
-            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-[#3b82f6]/50 transition-colors">
-              <input 
-                type="number" 
-                step="0.5" 
-                value={oiThreshold} 
-                onChange={(e) => setOiThreshold(Math.max(0.1, parseFloat(e.target.value) || 1))}
-                className="w-9 bg-transparent text-center text-[#3b82f6] font-bold outline-none hide-arrows"
-              />
-              <span className="text-[10px] text-gray-600">%</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
-            <span>极值费率:</span>
-            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-[#00b07c]/50 transition-colors">
-              <input 
-                type="number" 
-                step="10" 
-                value={fundingThreshold} 
-                onChange={(e) => setFundingThreshold(Math.max(10, parseFloat(e.target.value) || 10))}
-                className="w-10 bg-transparent text-center text-[#00b07c] font-bold outline-none hide-arrows"
-              />
-              <span className="text-[10px] text-gray-600">%</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
-            <span>连环爆仓:</span>
-            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-orange-500/50 transition-colors">
-              <input 
-                type="number" 
-                step="0.5" 
-                value={liqThreshold} 
-                onChange={(e) => setLiqThreshold(Math.max(0.5, parseFloat(e.target.value) || 1))}
-                className="w-9 bg-transparent text-center text-orange-400 font-bold outline-none hide-arrows"
-              />
-              <span className="text-[10px] text-gray-600">M$</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-2 border-l border-[#2b2f36]/50">
-            <span>期现基差:</span>
-            <div className="flex items-center bg-[#0d1014] px-1 py-0.5 rounded border border-[#2b2f36]/60 focus-within:border-purple-500/50 transition-colors">
-              <input 
-                type="number" 
-                step="0.05" 
-                value={basisThreshold} 
-                onChange={(e) => setBasisThreshold(Math.max(0.05, parseFloat(e.target.value) || 0.1))}
-                className="w-9 bg-transparent text-center text-purple-400 font-bold outline-none hide-arrows"
-              />
-              <span className="text-[10px] text-gray-600">%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action button triggers details */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button 
-            onClick={toggleAlarm}
-            title={alarmEnabled ? "静音警报声" : "开启警报声"}
-            className={`flex items-center justify-center p-1.5 rounded transition-colors cursor-pointer ${
-              alarmEnabled 
-                ? 'bg-[#1e2329] text-amber-400 hover:bg-[#2b2f36]' 
-                : 'bg-[#1e2329]/50 text-gray-500 hover:bg-[#1e2329]'
-            }`}
-          >
-            {alarmEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-          </button>
-          
-          <button 
-            onClick={toggleActive}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-medium transition-colors cursor-pointer ${
-              isActive 
-                ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
-                : 'bg-[#1e2329] text-gray-400 hover:bg-[#2b2f36]'
-            }`}
-          >
-            {isActive ? <Pause size={12} /> : <Play size={12} />}
-            <span>{isActive ? '监控中' : '已暂停'}</span>
-          </button>
-          
-          <button 
-            onClick={clearAllLogs}
-            className="flex items-center gap-1.5 text-xs bg-[#1e2329] hover:bg-[#2b2f36] text-gray-400 hover:text-gray-200 px-3 py-1.5 rounded transition-colors cursor-pointer"
-          >
-            <Trash2 size={12} />
-            <span>清空</span>
-          </button>
         </div>
       </div>
 
