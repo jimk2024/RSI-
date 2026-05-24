@@ -506,7 +506,7 @@ export function AbnormalMonitoringPanel() {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {oiEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
                   暂无捕获数据...
@@ -514,10 +514,12 @@ export function AbnormalMonitoringPanel() {
               ) : (
                 oiEvents.map((evt) => (
                   <motion.div
+                    layout
                     key={evt.id}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                     className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
@@ -567,7 +569,7 @@ export function AbnormalMonitoringPanel() {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {fundingEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
                   暂无捕获数据...
@@ -575,10 +577,12 @@ export function AbnormalMonitoringPanel() {
               ) : (
                 fundingEvents.map((evt) => (
                   <motion.div
+                    layout
                     key={evt.id}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                     className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
@@ -630,7 +634,7 @@ export function AbnormalMonitoringPanel() {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {liqEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
                   暂无捕获数据...
@@ -638,10 +642,12 @@ export function AbnormalMonitoringPanel() {
               ) : (
                 liqEvents.map((evt) => (
                   <motion.div
+                    layout
                     key={evt.id}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                     className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
@@ -693,7 +699,7 @@ export function AbnormalMonitoringPanel() {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {basisEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
                   暂无捕获数据...
@@ -701,10 +707,12 @@ export function AbnormalMonitoringPanel() {
               ) : (
                 basisEvents.map((evt) => (
                   <motion.div
+                    layout
                     key={evt.id}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -5, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                     className="p-1.5 bg-[#14181b] rounded text-[10px] transition-colors relative"
                   >
                     <div className="flex justify-between items-center mb-0.5">
