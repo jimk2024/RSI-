@@ -24,7 +24,7 @@ export function ChartGrid() {
           gridRow: 'span 2 / span 2'
         }}
       />
-      <div className="col-span-2 row-span-1 min-h-0">
+      <div className="row-span-1 min-h-0 w-full" style={{ gridColumn: 'span 2 / span 2' }}>
         <StrategyLibraryPanel />
       </div>
     </div>
