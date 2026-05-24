@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppContext } from "../AppContext";
-import { okxPublicFetch } from "../lib/api";
-import { calculateRSI, calculateEMA } from "../lib/indicators";
-import { Search, Loader2, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Loader2, Sparkles, TrendingUp, Zap } from "lucide-react";
 
 interface Opportunity {
   symbol: string;
@@ -17,206 +15,35 @@ interface Opportunity {
 }
 
 export function OpportunitySearchPanel() {
-  const { instruments, setOverrideChartSymbol } = useAppContext();
+  const { setOverrideChartSymbol } = useAppContext();
   const [isSearching, setIsSearching] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [scannedCount, setScannedCount] = useState(0);
   const [totalToScan, setTotalToScan] = useState(0);
-  const [countdown, setCountdown] = useState(300);
+  const [lastCompletedAt, setLastCompletedAt] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "explosion" | "extreme_buy" | "extreme_sell">("all");
-  
-  const isSearchingRef = useRef(false);
-  const countdownRef = useRef(300);
 
-  const startSearch = async () => {
-    if (isSearchingRef.current) return;
-    isSearchingRef.current = true;
-    setIsSearching(true);
-    setOpportunities([]);
-    setScannedCount(0);
-    
-    countdownRef.current = 300;
-    setCountdown(300);
-
-    const swapPairsRaw = Object.values(instruments)
-      .filter((inst: any) => inst.instId.endsWith("-USDT-SWAP"))
-      .map((inst: any) => inst.instId);
-
-    let swapPairs: string[] = [];
+  const fetchOpportunities = async () => {
     try {
-      const tickersResp = await okxPublicFetch("/api/v5/market/tickers?instType=SWAP");
-      if (tickersResp && tickersResp.length > 0) {
-        const highVolSymbols = new Set(
-          tickersResp
-            .filter((t: any) => parseFloat(t.volCcy24h) > 10000000)
-            .map((t: any) => t.instId)
-        );
-        swapPairs = swapPairsRaw.filter(symbol => highVolSymbols.has(symbol));
-      } else {
-        swapPairs = swapPairsRaw;
+      const resp = await fetch("/api/opportunities");
+      if (resp.ok) {
+        const data = await resp.json();
+        setOpportunities(data.opportunities || []);
+        setIsSearching(!!data.isSearching);
+        setScannedCount(data.scannedCount || 0);
+        setTotalToScan(data.totalToScan || 0);
+        setLastCompletedAt(data.lastCompletedAt || null);
       }
     } catch (err) {
-      console.error("Failed to fetch tickers", err);
-      swapPairs = swapPairsRaw;
+      console.error("Failed to fetch opportunities from backend:", err);
     }
-
-    setTotalToScan(swapPairs.length);
-
-    // Concurrency limit to prevent rate limits
-    const concurrency = 2;
-    let index = 0;
-    const opps: Opportunity[] = [];
-
-    const scanWorker = async () => {
-      while (index < swapPairs.length) {
-        const symbol = swapPairs[index];
-        index++;
-        
-        try {
-          const data15m = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=15m&limit=50`);
-          setScannedCount((prev) => prev + 1);
-          
-          if (data15m && data15m.length > 0) {
-            const sorted15m = [...data15m].reverse();
-            const closes15m = sorted15m.map((d: any) => parseFloat(d[4]));
-            const opens15m = sorted15m.map((d: any) => parseFloat(d[1]));
-            const vols15m = sorted15m.map((d: any) => parseFloat(d[5]));
-            const rsi15mList = calculateRSI(closes15m, 14);
-            const ema20List = calculateEMA(closes15m, 20);
-
-            const latestIdx = closes15m.length - 1;
-            const r15 = rsi15mList[latestIdx];
-            const r15_prev = rsi15mList[latestIdx - 1];
-            const r15_prev2 = rsi15mList[latestIdx - 2];
-            
-            if (r15 !== undefined && r15 !== null && r15_prev !== undefined && r15_prev !== null && r15_prev2 !== undefined && r15_prev2 !== null) {
-              // 15M线在55以上且连续上涨
-              const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
-              // 15M 强力击穿 55
-              const is15mBottom = r15 > 55 && r15_prev <= 55;
-
-              if (is15mBullish || is15mBottom) {
-                await new Promise(r => setTimeout(r, 100)); // Delay before 1H
-                const data1h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=50`);
-                if (data1h && data1h.length > 0) {
-                  const closes1h = [...data1h].reverse().map((d: any) => parseFloat(d[4]));
-                  const rsi1hList = calculateRSI(closes1h, 14);
-                  const r1h = rsi1hList[rsi1hList.length - 1];
-                  const r1h_prev = rsi1hList[rsi1hList.length - 2];
-
-                  if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
-                    // 1H线连续2个K线超越60 (当前和前一个)
-                    const is1hBullish = r1h > 60 && r1h_prev > 60;
-                    
-                    // 1H 拒绝创新低，从30以下向上突破40
-                    let has1hBelow30 = false;
-                    for (let k = Math.max(0, rsi1hList.length - 6); k < rsi1hList.length - 1; k++) {
-                      if (rsi1hList[k] < 30) has1hBelow30 = true;
-                    }
-                    const is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
-
-                    if (is1hBullish || is1hBottom) {
-                      await new Promise(r => setTimeout(r, 100)); // Delay before 4H
-                      const data4h = await okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
-                      if (data4h && data4h.length > 0) {
-                        const closes4h = [...data4h].reverse().map((d: any) => parseFloat(d[4]));
-                        const rsi4hList = calculateRSI(closes4h, 14);
-                        const r4h = rsi4hList[rsi4hList.length - 1];
-
-                        const r4h_prev = rsi4hList[rsi4hList.length - 2];
-
-                        if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
-                          // 4H线刚确认上到70且未收缩 (当前>=70, 并且前值严格<70，确保只抓取最初爆破的瞬间，防止高位钝化后追涨)
-                          const is4hBullish = r4h >= 70 && r4h_prev < 70;
-                          
-                          // 4H 极度超卖 < 30
-                          const is4hBottom = r4h < 30;
-                          
-                          const isExplosion = is15mBullish && is1hBullish && is4hBullish;
-                          const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
-
-                          if (isExplosion || isBottomFishing) {
-                            // Calculate multi-dimensional health confirmation filters (成交量放大, 均线支持, 阳线确认)
-                            const currentClose = closes15m[latestIdx];
-                            const currentOpen = opens15m[latestIdx];
-                            const currentVol = vols15m[latestIdx];
-                            
-                            let sumVol = 0;
-                            let count = 0;
-                            for (let i = Math.max(0, latestIdx - 10); i < latestIdx; i++) {
-                              sumVol += vols15m[i];
-                              count++;
-                            }
-                            const avgVol = count > 0 ? (sumVol / count) : 0;
-                            const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
-                            
-                            const ema20Val = ema20List[latestIdx];
-                            const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
-                            const isBullishCandle = currentClose > currentOpen;
-
-                            const validExplosion = isExplosion && isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25;
-                            const validBottom = isBottomFishing && isBullishCandle && volSurgeMultiplier >= 1.2;
-
-                            // Additional filters: must be a bullish candle, must be above EMA20, and must have a volume surge
-                            if (validExplosion || validBottom) {
-                              opps.push({
-                                symbol,
-                                rsi: r15,
-                                rsi1h: r1h,
-                                rsi4h: r4h,
-                                type: validExplosion ? "explosion" : "bottom_fishing",
-                                typeLabel: validExplosion ? "起爆预警" : "抄底预警",
-                                volSurgeMultiplier,
-                                aboveEma20,
-                                isBullishCandle
-                              });
-                              // Sort with highest 15m RSI first
-                              setOpportunities([...opps].sort((a, b) => b.rsi - a.rsi));
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        } catch (err) {
-           console.error("Opportunity search err:", err);
-        }
-
-        // Delay to respect strict OKX API limits
-        await new Promise(r => setTimeout(r, 150));
-      }
-    };
-
-    const workers = [];
-    for (let i = 0; i < concurrency; i++) {
-        workers.push(scanWorker());
-    }
-
-    await Promise.all(workers);
-    setIsSearching(false);
-    isSearchingRef.current = false;
   };
 
   useEffect(() => {
-    if (Object.keys(instruments).length > 0) {
-      startSearch();
-
-      const timer = setInterval(() => {
-        countdownRef.current -= 1;
-        setCountdown(countdownRef.current);
-        
-        if (countdownRef.current <= 0) {
-          startSearch();
-        }
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [instruments]);
+    fetchOpportunities();
+    const interval = setInterval(fetchOpportunities, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter list based on selected tab
   const filteredOpportunities = opportunities.filter(opp => {
@@ -235,10 +62,12 @@ export function OpportunitySearchPanel() {
           {isSearching ? (
             <span className="flex items-center gap-1 text-[#3b82f6] font-semibold">
               <Loader2 size={10} className="animate-spin" />
-              <span>{scannedCount}/{totalToScan}</span>
+              <span>扫描中 {scannedCount}/{totalToScan}</span>
             </span>
           ) : (
-            <span>{Math.floor(countdown / 60)}分{(countdown % 60).toString().padStart(2, '0')}秒</span>
+            <span>
+              {lastCompletedAt ? `已更新 ${new Date(lastCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : "已连接后台"}
+            </span>
           )}
         </div>
       </div>
