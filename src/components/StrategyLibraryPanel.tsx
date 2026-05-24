@@ -89,7 +89,7 @@ export function StrategyLibraryPanel() {
         <div className="flex-1 flex flex-col min-h-0 border-r border-[#2b2f36] px-4">
           <div className="text-xs text-gray-500 mb-2">参数调优</div>
           <div className="flex-1 overflow-y-auto pr-1">
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-1">
               {activeStrategy.params.map(param => (
                 <div key={param.id} className="flex flex-col gap-1">
                   <label className="text-[11px] text-gray-400">{param.name}</label>
@@ -118,7 +118,7 @@ export function StrategyLibraryPanel() {
         </div>
 
         {/* Right: Actions */}
-        <div className="w-64 flex flex-col min-h-0 pl-4 pt-1 gap-3 shrink-0">
+        <div className="w-64 flex flex-col min-h-0 pl-8 pt-1 gap-3 shrink-0">
           <div className="text-[11px] leading-relaxed text-gray-400 text-center mb-2 px-1 break-words whitespace-normal">
             当前处于模拟阶段，可以先进行历史数据回测或注入模拟盘环境运行寻找参数最优解。
           </div>
