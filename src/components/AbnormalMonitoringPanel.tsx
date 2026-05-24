@@ -488,24 +488,24 @@ export function AbnormalMonitoringPanel() {
         </div>
       </div>
 
-      {/* Grid containing exactly 4 side-by-side columns, optimized to fit elegantly in the 250px height layout */}
-      <div className="grid grid-cols-4 gap-2 flex-1 min-h-0 overflow-hidden">
+      {/* 4 horizontal columns separated by vertical divider lines */}
+      <div className="flex flex-row items-stretch gap-0 flex-1 min-h-0 overflow-hidden mt-1 bg-[#1a1f26]/40 p-1.5 rounded-md border border-[#2b2f36]">
         
         {/* Column 1: OI Spike (OI 暴增) */}
-        <div className="bg-[#1e2329] border border-[#2b2f36] rounded-md p-2 flex flex-col min-h-0 h-full relative group/col shadow hover:border-[#3b82f6]/40 transition-all">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Zap size={11} className="text-[#3b82f6]" />
               <span className="text-[11px] font-bold text-white tracking-wide">1. OI 暴增(未平仓量)</span>
             </div>
-            <div className="text-[9px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1 rounded">OI Spike</div>
+            <div className="text-[9px] text-[#3b82f6] font-mono bg-[#3b82f6]/10 px-1.5 rounded-sm">OI Spike</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1 bg-[#161a1e] p-1 rounded border border-[#2b2f36]/20">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
             15分钟内: OI增幅 ≥ {oiThreshold}% 伴随价格盘整(±0.5%)且量能放大
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
             <AnimatePresence initial={false}>
               {oiEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
@@ -515,7 +515,7 @@ export function AbnormalMonitoringPanel() {
                 oiEvents.map((evt) => (
                   <motion.div
                     key={evt.id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-[#3b82f6]/30 rounded text-[10px] transition-colors relative"
@@ -550,21 +550,24 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
+        {/* Divider 1-2 */}
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+
         {/* Column 2: Extreme Funding Rate (极端资金费率) */}
-        <div className="bg-[#1e2329] border border-[#2b2f36] rounded-md p-2 flex flex-col min-h-0 h-full relative group/col shadow hover:border-[#00b07c]/40 transition-all">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Percent size={11} className="text-[#00b07c]" />
               <span className="text-[11px] font-bold text-white tracking-wide">2. 极端资金费率(Funding)</span>
             </div>
-            <div className="text-[9px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1 rounded">Funding</div>
+            <div className="text-[9px] text-[#00b07c] font-mono bg-[#00b07c]/10 px-1.5 rounded-sm">Funding</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1 bg-[#161a1e] p-1 rounded border border-[#2b2f36]/20">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
             当前年化费率 ≥ +{fundingThreshold}% 或 ≤ -{fundingThreshold}% (结算期 ≥ 0.1%)
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
             <AnimatePresence initial={false}>
               {fundingEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
@@ -574,7 +577,7 @@ export function AbnormalMonitoringPanel() {
                 fundingEvents.map((evt) => (
                   <motion.div
                     key={evt.id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-[#00b07c]/30 rounded text-[10px] transition-colors relative"
@@ -611,21 +614,24 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
+        {/* Divider 2-3 */}
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+
         {/* Column 3: Cascading Liquidation (连环爆仓潮) */}
-        <div className="bg-[#1e2329] border border-[#2b2f36] rounded-md p-2 flex flex-col min-h-0 h-full relative group/col shadow hover:border-orange-500/40 transition-all">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Flame size={11} className="text-orange-500" />
               <span className="text-[11px] font-bold text-white tracking-wide">3. 连环爆仓潮(Liquidation)</span>
             </div>
-            <div className="text-[9px] text-orange-500 font-mono bg-orange-500/10 px-1 rounded">Liquidation</div>
+            <div className="text-[9px] text-orange-500 font-mono bg-orange-500/10 px-1.5 rounded-sm">Liquidation</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1 bg-[#161a1e] p-1 rounded border border-[#2b2f36]/20">
-            1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 伴随瞬时插针 &gt;1.5%
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
+            1分钟内全网爆多/爆空累积 ≥ ${liqThreshold}M 瞬时插针偏离 &gt;1.5%
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
             <AnimatePresence initial={false}>
               {liqEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
@@ -635,7 +641,7 @@ export function AbnormalMonitoringPanel() {
                 liqEvents.map((evt) => (
                   <motion.div
                     key={evt.id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-orange-500/30 rounded text-[10px] transition-colors relative"
@@ -672,21 +678,24 @@ export function AbnormalMonitoringPanel() {
           </div>
         </div>
 
+        {/* Divider 3-4 */}
+        <div className="w-[1px] bg-[#2b2f36] self-stretch mx-1 shrink-0 opacity-80" />
+
         {/* Column 4: Spot-Futures Basis Deviation (期现基差偏离) */}
-        <div className="bg-[#1e2329] border border-[#2b2f36] rounded-md p-2 flex flex-col min-h-0 h-full relative group/col shadow hover:border-purple-500/40 transition-all">
+        <div className="flex-1 flex flex-col min-h-0 h-full relative p-1.5 overflow-hidden transition-colors hover:bg-white/[0.01] rounded">
           <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#2b2f36]/60">
             <div className="flex items-center gap-1">
               <Scale size={11} className="text-purple-400" />
               <span className="text-[11px] font-bold text-white tracking-wide">4. 期现基差偏离(Basis)</span>
             </div>
-            <div className="text-[9px] text-purple-400 font-mono bg-purple-400/10 px-1 rounded">Basis</div>
+            <div className="text-[9px] text-purple-400 font-mono bg-purple-400/10 px-1.5 rounded-sm">Basis</div>
           </div>
           
-          <div className="text-[9px] text-gray-500 leading-tight mb-1 bg-[#161a1e] p-1 rounded border border-[#2b2f36]/20">
+          <div className="text-[9px] text-gray-500 leading-tight mb-1.5 bg-[#161a1e]/80 p-1.5 rounded border border-[#2b2f36]/40">
             基差溢价 (Fprice - Sprice)/Sprice 偏离正常溢价均值 ≥ {basisThreshold}%
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 custom-scrollbar min-h-0">
             <AnimatePresence initial={false}>
               {basisEvents.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-600 text-[10px] italic py-8">
@@ -696,7 +705,7 @@ export function AbnormalMonitoringPanel() {
                 basisEvents.map((evt) => (
                   <motion.div
                     key={evt.id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0 }}
                     className="p-1.5 bg-[#14181b] border border-[#2b2f36]/30 hover:border-purple-500/30 rounded text-[10px] transition-colors relative"
@@ -718,7 +727,7 @@ export function AbnormalMonitoringPanel() {
                       {evt.metrics.slice(0, 2).map((m, idx) => (
                         <div key={idx} className="truncate">
                           <span>{m.label.substring(0, 2)}:</span>{" "}
-                          <span className="text-gray-300">
+                          <span className="text-gray-200">
                             {m.value}
                           </span>
                         </div>

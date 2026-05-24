@@ -41,7 +41,7 @@ function DashboardContent() {
           {/* Left Top Sub-column */}
           <div className="w-56 flex flex-col gap-3 min-h-0 shrink-0">
             {/* Brand Module */}
-            <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 flex flex-col justify-center items-center min-h-0 relative shadow-inner hover:bg-[#1e2329] transition-colors group">
+            <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg py-2 px-3 flex flex-col justify-center items-center min-h-0 relative shadow-inner hover:bg-[#1e2329] transition-colors group">
                {/* Tech accent line */}
                <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-gray-400/30 to-transparent"></div>
                
@@ -54,7 +54,7 @@ function DashboardContent() {
                     <span className="font-black text-white">TRADER</span>
                   </h1>
                   
-                  <div className="mt-2 opacity-60">
+                  <div className="mt-1 opacity-60">
                      <span className="text-[10px] tracking-widest font-sans text-gray-400">
                        智能量化交易系统
                      </span>
@@ -62,11 +62,11 @@ function DashboardContent() {
                </button>
 
                {user && (
-                 <div className="mt-3 w-full border-t border-[#2b2f36] pt-3 flex flex-col items-center flex-wrap">
+                 <div className="mt-2 w-full border-t border-[#2b2f36] pt-2 flex flex-col items-center flex-wrap">
                    <div className="text-[10px] text-gray-400 tracking-wider truncate w-full text-center">
                      {user.email}
                    </div>
-                   <div className="text-[10px] text-[#22c55e] font-sans font-medium mb-3 mt-1 tracking-wide">
+                   <div className="text-[10px] text-[#22c55e] font-sans font-medium mb-2 mt-0.5 tracking-wide">
                      授权至: {new Date(user.membership_expiry).toLocaleDateString()}
                    </div>
                    <button 
@@ -97,7 +97,7 @@ function DashboardContent() {
         </div>
 
         {/* Bottom Row: Left Trade Settings + Right Abnormal Monitoring */}
-        <div className="h-[250px] shrink-0 flex gap-3 min-h-0">
+        <div className="h-[290px] shrink-0 flex gap-3 min-h-0">
           <div className="w-56 shrink-0 h-full">
             <TradeSettingsPanel />
           </div>
