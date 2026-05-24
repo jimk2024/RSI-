@@ -5,7 +5,7 @@ import { AssetOverviewPanel } from "./components/AssetOverviewPanel";
 import { TradeSettingsPanel } from "./components/TradeSettingsPanel";
 import { OpportunitySearchPanel } from "./components/OpportunitySearchPanel";
 import { ChartWidget } from "./components/ChartWidget";
-import { StrategyLibraryPanel } from "./components/StrategyLibraryPanel";
+import { AbnormalMonitoringPanel } from "./components/AbnormalMonitoringPanel";
 import { PositionsPanel } from "./components/PositionsPanel";
 import { TradeLogPanel } from "./components/TradeLogPanel";
 import { SymbolDataPanel } from "./components/SymbolDataPanel";
@@ -96,13 +96,13 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Bottom Row: Left Trade Settings + Right Strategy Library */}
+        {/* Bottom Row: Left Trade Settings + Right Abnormal Monitoring */}
         <div className="h-[250px] shrink-0 flex gap-3 min-h-0">
           <div className="w-56 shrink-0 h-full">
             <TradeSettingsPanel />
           </div>
           <div className="flex-1 min-h-0 h-full">
-            <StrategyLibraryPanel />
+            <AbnormalMonitoringPanel />
           </div>
         </div>
 
