@@ -63,7 +63,7 @@ export function Dashboard() {
           <div className="shrink-0">
             <AssetOverviewPanel />
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 h-[290px]">
             <TradeSettingsPanel />
           </div>
         </div>

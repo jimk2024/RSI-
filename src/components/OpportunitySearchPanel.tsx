@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "../AppContext";
-import { Loader2, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Sparkles, TrendingUp, Zap, RefreshCw } from "lucide-react";
 
 interface Opportunity {
   symbol: string;
@@ -39,23 +39,19 @@ export function OpportunitySearchPanel() {
           <div className="w-2 h-5 bg-[#3b82f6] rounded-full"></div>
           <h2 className="text-sm font-bold tracking-wider">机会预警</h2>
         </div>
-        <div className="text-[10px] text-gray-400 font-mono flex items-center gap-1.5 bg-[#1e2329] px-2 py-0.5 rounded border border-[#2b2f36]/80 text-right">
-          {isSearching ? (
-            <span className="flex items-center gap-1 text-[#3b82f6] font-semibold">
-              <Loader2 size={10} className="animate-spin" />
-              <span>扫描中 {scannedCount}/{totalToScan}</span>
-            </span>
-          ) : (
-            <span>
-              {lastCompletedAt ? `已更新 ${new Date(lastCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : "客户端扫描就绪"}
-            </span>
-          )}
+        <div className="text-[10px] text-gray-400 font-mono flex items-center gap-1.5 bg-[#1e2329] px-2 py-0.5 rounded border border-[#2b2f36]/80 text-right select-none">
+          <RefreshCw className={`w-3 h-3 text-gray-400 ${isSearching ? "animate-spin" : ""}`} />
+          <span>
+            {lastCompletedAt ? `已更新 ${new Date(lastCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : "扫描中"}
+          </span>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2.5 pr-0.5">
-        {!isSearching && filteredOpportunities.length === 0 && (
-          <div className="text-sm text-gray-500 text-center py-6">无符合当前条件的交易对</div>
+        {filteredOpportunities.length === 0 && (
+          <div className="text-sm text-gray-500 text-center py-6">
+            {isSearching && !lastCompletedAt ? "首次扫描进行中..." : "暂无符合条件的交易对"}
+          </div>
         )}
         
         {filteredOpportunities.map((opp, i) => (

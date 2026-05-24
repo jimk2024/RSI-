@@ -120,8 +120,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
           if (active) setIsScanning(true);
           
-          let currentOpps: Opportunity[] = [];
-          
           const results = await runClientScanStep(
             (scanned, total) => {
               if (active) {
@@ -130,11 +128,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               }
             },
             (opp) => {
-              if (active) {
-                // Add and sort opportunities dynamically in real-time
-                currentOpps = [...currentOpps, opp].sort((a, b) => b.rsi - a.rsi);
-                setScanOpportunities(currentOpps);
-              }
+              // Collect/log if needed, but do not setState state progressively
+              // to avoid clearing previous results during the scan.
             },
             controller.signal
           );

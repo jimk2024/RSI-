@@ -13,7 +13,7 @@ export function TradeSettingsPanel() {
   };
 
   return (
-    <div className="shrink-0 bg-[#161a1e] border border-[#2b2f36] rounded-lg p-4 flex flex-col gap-4 overflow-y-auto min-h-0">
+    <div className="shrink-0 bg-[#161a1e] border border-[#2b2f36] rounded-lg p-4 flex flex-col gap-4 overflow-y-auto min-h-0 h-full">
       <div className="flex items-center gap-2 mb-1 shrink-0">
         <div className="w-2 h-5 bg-[#f0b90b] rounded-full"></div>
         <h2 className="text-sm font-bold tracking-wider">交易参数</h2>
