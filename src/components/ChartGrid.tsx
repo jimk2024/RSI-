@@ -31,7 +31,7 @@ export function ChartGrid() {
         
         if (maximizedChart !== null) {
           if (isMaximized) {
-            className = "col-span-2 row-span-2 order-first";
+            className = "col-span-2 row-span-2 row-start-1 col-start-1";
           } else {
             // Find if this is one of the first 2 non-maximized charts
             const otherPairs = defaultPairs.filter((p, i) => `chart-${i}` !== maximizedChart);
