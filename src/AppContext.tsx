@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { OkxApiConfig, okxPublicFetch, okxPrivateFetch } from "./lib/api";
+import { Opportunity, runClientScanStep } from "./lib/opportunityScannerClient";
 
 export interface LogEntry {
   id: string;
@@ -42,6 +43,11 @@ interface AppContextType {
   setOverrideChartSymbol: React.Dispatch<React.SetStateAction<{ id: string, symbol: string } | null>>;
   activeMainSymbol: string;
   setActiveMainSymbol: React.Dispatch<React.SetStateAction<string>>;
+  scanOpportunities: Opportunity[];
+  isScanning: boolean;
+  scanScannedCount: number;
+  scanTotalToScan: number;
+  scanLastCompletedAt: string | null;
 }
 
 const defaultEnvConfig: OkxApiConfig = {
@@ -93,6 +99,71 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isFetchingPosOrd, setIsFetchingPosOrd] = useState(false);
   const [overrideChartSymbol, setOverrideChartSymbol] = useState<{ id: string, symbol: string } | null>(null);
   const [activeMainSymbol, setActiveMainSymbol] = useState("BTC-USDT-SWAP");
+
+  // Client-side Opportunities Scanner state
+  const [scanOpportunities, setScanOpportunities] = useState<Opportunity[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanScannedCount, setScanScannedCount] = useState(0);
+  const [scanTotalToScan, setScanTotalToScan] = useState(0);
+  const [scanLastCompletedAt, setScanLastCompletedAt] = useState<string | null>(null);
+
+  // Client-side Scanner hook loop
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    const startScanningLoop = async () => {
+      // Delay scanner a little bit on initial render to prevent interference with initial loaded assets
+      await new Promise(r => setTimeout(r, 1500));
+      
+      while (active) {
+        try {
+          if (active) setIsScanning(true);
+          
+          let currentOpps: Opportunity[] = [];
+          
+          const results = await runClientScanStep(
+            (scanned, total) => {
+              if (active) {
+                setScanScannedCount(scanned);
+                setScanTotalToScan(total);
+              }
+            },
+            (opp) => {
+              if (active) {
+                // Add and sort opportunities dynamically in real-time
+                currentOpps = [...currentOpps, opp].sort((a, b) => b.rsi - a.rsi);
+                setScanOpportunities(currentOpps);
+              }
+            },
+            controller.signal
+          );
+
+          if (active) {
+            setScanOpportunities([...results].sort((a, b) => b.rsi - a.rsi));
+            setIsScanning(false);
+            setScanLastCompletedAt(new Date().toISOString());
+          }
+
+          // Scan complete, wait 6 seconds before running the next cycle
+          for (let seconds = 0; seconds < 6 && active; seconds++) {
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        } catch (err) {
+          console.error("[ClientScanner] Error in main scan loop:", err);
+          if (active) setIsScanning(false);
+          await new Promise(r => setTimeout(r, 10000));
+        }
+      }
+    };
+
+    startScanningLoop();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("okxConfigV3", JSON.stringify(apiConfig));
@@ -235,7 +306,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ apiConfig, setApiConfig, tradeConfig, setTradeConfig, logs, addLog, refreshTrigger, triggerRefresh, instruments, positions, orders, isFetchingPosOrd, balance, overrideChartSymbol, setOverrideChartSymbol, activeMainSymbol, setActiveMainSymbol }}
+      value={{
+        apiConfig,
+        setApiConfig,
+        tradeConfig,
+        setTradeConfig,
+        logs,
+        addLog,
+        refreshTrigger,
+        triggerRefresh,
+        instruments,
+        positions,
+        orders,
+        isFetchingPosOrd,
+        balance,
+        overrideChartSymbol,
+        setOverrideChartSymbol,
+        activeMainSymbol,
+        setActiveMainSymbol,
+        scanOpportunities,
+        isScanning,
+        scanScannedCount,
+        scanTotalToScan,
+        scanLastCompletedAt,
+      }}
     >
       {children}
     </AppContext.Provider>

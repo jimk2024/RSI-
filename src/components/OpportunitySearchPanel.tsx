@@ -15,35 +15,16 @@ interface Opportunity {
 }
 
 export function OpportunitySearchPanel() {
-  const { setOverrideChartSymbol } = useAppContext();
-  const [isSearching, setIsSearching] = useState(false);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [scannedCount, setScannedCount] = useState(0);
-  const [totalToScan, setTotalToScan] = useState(0);
-  const [lastCompletedAt, setLastCompletedAt] = useState<string | null>(null);
+  const { 
+    setOverrideChartSymbol,
+    scanOpportunities: opportunities,
+    isScanning: isSearching,
+    scanScannedCount: scannedCount,
+    scanTotalToScan: totalToScan,
+    scanLastCompletedAt: lastCompletedAt,
+  } = useAppContext();
+
   const [activeTab, setActiveTab] = useState<"all" | "explosion" | "extreme_buy" | "extreme_sell">("all");
-
-  const fetchOpportunities = async () => {
-    try {
-      const resp = await fetch("/api/opportunities");
-      if (resp.ok) {
-        const data = await resp.json();
-        setOpportunities(data.opportunities || []);
-        setIsSearching(!!data.isSearching);
-        setScannedCount(data.scannedCount || 0);
-        setTotalToScan(data.totalToScan || 0);
-        setLastCompletedAt(data.lastCompletedAt || null);
-      }
-    } catch (err) {
-      console.error("Failed to fetch opportunities from backend:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOpportunities();
-    const interval = setInterval(fetchOpportunities, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Filter list based on selected tab
   const filteredOpportunities = opportunities.filter(opp => {
@@ -66,7 +47,7 @@ export function OpportunitySearchPanel() {
             </span>
           ) : (
             <span>
-              {lastCompletedAt ? `已更新 ${new Date(lastCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : "已连接后台"}
+              {lastCompletedAt ? `已更新 ${new Date(lastCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : "客户端扫描就绪"}
             </span>
           )}
         </div>

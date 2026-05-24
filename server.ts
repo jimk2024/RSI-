@@ -8,7 +8,15 @@ import licenseRouter from "./api/license";
 import authRouter from "./api/auth";
 import adminRouter from "./api/admin";
 import { GoogleGenAI } from "@google/genai";
-import { startBackgroundScanner, cachedOpportunities, scanStatus } from "./server/opportunityScanner";
+
+// No backend opportunity scanning loop: moved to client-side to save server bandwidth and CPU
+const cachedOpportunities: any[] = [];
+const scanStatus = {
+  isSearching: false,
+  scannedCount: 0,
+  totalToScan: 0,
+  lastCompletedAt: null as string | null,
+};
 
 const app = express();
 
@@ -125,11 +133,6 @@ app.get("/api/opportunities", (req, res) => {
 });
 
 async function startServer() {
-  // Start the background scanner process automatically in the background
-  startBackgroundScanner().catch(err => {
-    console.error("Error starting startBackgroundScanner:", err);
-  });
-
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
