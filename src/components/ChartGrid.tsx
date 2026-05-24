@@ -1,44 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { ChartWidget } from "./ChartWidget";
+import { StrategyLibraryPanel } from "./StrategyLibraryPanel";
 import { useAppContext } from "../AppContext";
 
 export function ChartGrid() {
-  const [mainChartId, setMainChartId] = useState<string>("chart-0");
   const { overrideChartSymbol } = useAppContext();
+  const [activeSymbol, setActiveSymbol] = useState("BTC-USDT-SWAP");
 
   useEffect(() => {
     if (overrideChartSymbol) {
-      setMainChartId(overrideChartSymbol.id);
+      setActiveSymbol(overrideChartSymbol.symbol);
     }
   }, [overrideChartSymbol]);
 
-  const defaultPairs = [
-    "BTC-USDT-SWAP",
-    "ETH-USDT-SWAP",
-    "SOL-USDT-SWAP"
-  ];
-
   return (
     <div className="grid grid-cols-2 grid-rows-3 gap-2 h-full min-h-0">
-      {defaultPairs.map((pair, idx) => {
-        const id = `chart-${idx}`;
-        const isMain = mainChartId === id;
-
-        return (
-          <ChartWidget 
-            key={id}
-            id={id} 
-            defaultSymbol={pair} 
-            isMaximized={isMain}
-            onToggleMaximize={() => setMainChartId(id)}
-            style={{ 
-              gridColumn: isMain ? 'span 2 / span 2' : 'span 1 / span 1',
-              gridRow: isMain ? 'span 2 / span 2' : 'span 1 / span 1',
-              order: isMain ? -1 : 0
-            }}
-          />
-        );
-      })}
+      <ChartWidget 
+        id="main-chart" 
+        defaultSymbol={activeSymbol} 
+        isMaximized={true}
+        style={{ 
+          gridColumn: 'span 2 / span 2',
+          gridRow: 'span 2 / span 2'
+        }}
+      />
+      <div className="col-span-2 row-span-1 min-h-0">
+        <StrategyLibraryPanel />
+      </div>
     </div>
   );
 }
