@@ -18,7 +18,6 @@ export function ChartGrid() {
       <ChartWidget 
         id="chart-0" 
         defaultSymbol={activeSymbol} 
-        isMaximized={true}
         style={{ 
           gridColumn: 'span 2 / span 2',
           gridRow: 'span 2 / span 2'

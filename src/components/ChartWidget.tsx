@@ -9,13 +9,11 @@ interface ChartWidgetProps {
   key?: number | string;
   id: string;
   defaultSymbol: string;
-  isMaximized?: boolean;
-  onToggleMaximize?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
-export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, className = "", style }: ChartWidgetProps) {
+export function ChartWidget({ id, defaultSymbol, className = "", style }: ChartWidgetProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const { apiConfig, addLog, triggerRefresh, refreshTrigger, tradeConfig, instruments, positions, orders, overrideChartSymbol, setOverrideChartSymbol, setActiveMainSymbol } = useAppContext();
   
@@ -39,10 +37,8 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    if (isMaximized || id === "chart-0") {
-      setActiveMainSymbol(symbol);
-    }
-  }, [symbol, isMaximized, id, setActiveMainSymbol]);
+    setActiveMainSymbol(symbol);
+  }, [symbol, setActiveMainSymbol]);
 
   useEffect(() => {
     if (overrideChartSymbol && overrideChartSymbol.id === id) {
@@ -55,7 +51,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
   // Try to use ref to hold chart state instead of React state to avoid re-render loops
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const percentageSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const ema50SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema200SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
@@ -111,9 +106,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
         borderColor: "#334155",
       },
       leftPriceScale: {
-        visible: isMaximized,
-        borderColor: "#334155",
-        mode: PriceScaleMode.Percentage,
+        visible: false,
       },
     });
     
@@ -128,15 +121,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     });
     candleSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0.3 } });
     candleSeriesRef.current = candleSeries;
-
-    const percentageSeries = chart.addLineSeries({
-      priceScaleId: "left",
-      lineWidth: 0,
-      crosshairMarkerVisible: false,
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-    percentageSeriesRef.current = percentageSeries;
 
     const volumeSeries = chart.addHistogramSeries({
       color: "#3b82f6",
@@ -259,22 +243,9 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     ema200SeriesRef.current?.applyOptions({ visible: showEma200 });
   }, [showEma200]);
 
-  useEffect(() => {
-    if (chartRef.current) {
-      chartRef.current.applyOptions({
-        leftPriceScale: {
-          visible: !!isMaximized,
-        }
-      });
-    }
-  }, [isMaximized]);
+
 
   useEffect(() => {
-    if (!isMaximized) {
-      setCandleCountdown("");
-      return;
-    }
-
     const timer = setInterval(() => {
       const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
       let nextTime = 0;
@@ -311,7 +282,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeframe, isMaximized]);
+  }, [timeframe]);
 
   useEffect(() => {
     if (!candleSeriesRef.current) return;
@@ -321,8 +292,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       try { candleSeriesRef.current?.removePriceLine(line); } catch (e) {}
     });
     posLinesRef.current = [];
-
-    if (!isMaximized) return;
 
     const pos = positions?.find(p => p.instId === symbol);
     if (!pos) return;
@@ -373,7 +342,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
       }));
     });
 
-  }, [positions, orders, symbol, isMaximized]);
+  }, [positions, orders, symbol]);
 
   // Fetch K-lines
   useEffect(() => {
@@ -383,7 +352,7 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     const fetchCandles = async () => {
       try {
         await new Promise(r => setTimeout(r, Math.random() * 200 + 100)); // 100-300ms random offset to stagger multiple widgets slightly
-        const limit = isMaximized ? 300 : 100;
+        const limit = 300;
         
         // Parallelized fetches for main timeframe, 15m, 1H, 4H to maintain constant synchrony
         const mainPromise = okxPublicFetch(`/api/v5/market/candles?instId=${symbol}&bar=${timeframe}&limit=${limit}`);
@@ -442,12 +411,6 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
           color: parseFloat(d[4]) >= parseFloat(d[1]) ? "rgba(16, 185, 129, 0.4)" : "rgba(244, 63, 94, 0.4)"
         }));
 
-        const percentageData = candleData.map(d => ({
-          time: d.time,
-          value: d.close,
-        }));
-        percentageSeriesRef.current?.setData(percentageData);
-        
         candleSeriesRef.current?.setData(candleData);
         volumeSeriesRef.current?.setData(vData);
 
@@ -754,14 +717,13 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
     };
 
     fetchCandles();
-    const intervalTime = isMaximized ? 1000 : 5000;
-    const interval = setInterval(fetchCandles, intervalTime); // 1s poll for max, 5s for grid
+    const interval = setInterval(fetchCandles, 1000); // 1s poll for the primary chart
 
     return () => {
       active = false;
       clearInterval(interval);
     };
-  }, [symbol, timeframe, rsiPeriod, rsiOverbought, rsiOversold, isMaximized]);
+  }, [symbol, timeframe, rsiPeriod, rsiOverbought, rsiOversold]);
 
   const handleTrade = async (side: "buy" | "sell", posSide: "long" | "short") => {
     const amountUsdt = tradeConfig.amount;
@@ -909,34 +871,30 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
             )}
           </div>
           
-          {isMaximized && (
-            <>
-              <div className="flex items-center gap-1 ml-2 bg-[#1e2329] rounded p-[2px]">
-                 {["15m", "1H", "4H", "1D"].map(tf => (
-                   <button
-                     key={tf}
-                     onClick={() => setTimeframe(tf)}
-                     className={`text-[10px] px-2 py-[2px] rounded ${timeframe === tf ? "bg-[#3b82f6] text-white" : "text-gray-400 hover:text-white"}`}
-                   >
-                     {tf}
-                   </button>
-                 ))}
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                <label className="flex items-center gap-1 text-[10px] text-[#eab308] cursor-pointer">
-                  <input type="checkbox" checked={showEma50} onChange={e => setShowEma50(e.target.checked)} className="accent-[#eab308]" />
-                  EMA50
-                </label>
-                <label className="flex items-center gap-1 text-[10px] text-[#3b82f6] cursor-pointer">
-                  <input type="checkbox" checked={showEma200} onChange={e => setShowEma200(e.target.checked)} className="accent-[#3b82f6]" />
-                  EMA200
-                </label>
-                {candleCountdown && (
-                  <span className="text-[10px] font-mono text-[#f0b90b] ml-2">倒计时: {candleCountdown}</span>
-                )}
-              </div>
-            </>
-          )}
+          <div className="flex items-center gap-1 ml-2 bg-[#1e2329] rounded p-[2px]">
+             {["15m", "1H", "4H", "1D"].map(tf => (
+               <button
+                 key={tf}
+                 onClick={() => setTimeframe(tf)}
+                 className={`text-[10px] px-2 py-[2px] rounded ${timeframe === tf ? "bg-[#3b82f6] text-white" : "text-gray-400 hover:text-white"}`}
+               >
+                 {tf}
+               </button>
+             ))}
+          </div>
+          <div className="flex items-center gap-2 ml-4">
+            <label className="flex items-center gap-1 text-[10px] text-[#eab308] cursor-pointer">
+              <input type="checkbox" checked={showEma50} onChange={e => setShowEma50(e.target.checked)} className="accent-[#eab308]" />
+              EMA50
+            </label>
+            <label className="flex items-center gap-1 text-[10px] text-[#3b82f6] cursor-pointer">
+              <input type="checkbox" checked={showEma200} onChange={e => setShowEma200(e.target.checked)} className="accent-[#3b82f6]" />
+              EMA200
+            </label>
+            {candleCountdown && (
+              <span className="text-[10px] font-mono text-[#f0b90b] ml-2">倒计时: {candleCountdown}</span>
+            )}
+          </div>
           
           <div className="flex items-center gap-1 ml-2">
             <span className="text-[10px] text-gray-500">RSI:</span>
@@ -947,15 +905,8 @@ export function ChartWidget({ id, defaultSymbol, isMaximized, onToggleMaximize, 
             <input type="number" min={15} max={35} value={rsiOversold} onChange={(e) => setRsiOversold(Number(e.target.value) || 30)} className="w-[30px] bg-[#1e2329] border border-[#2b2f36] rounded text-[10px] py-[2px] text-center text-[#10b981] outline-none focus:border-[#474d57]" title="超卖 (15-35)" />
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-2">
           <span className={`text-xs font-mono ${price && price > 0 ? "text-[#00b07c]" : "text-gray-400"}`}>{price ? (instruments[symbol]?.tickSz ? price.toFixed(Math.max(0, -Math.floor(Math.log10(instruments[symbol].tickSz)))) : price.toFixed(4)) : "---"}</span>
-          <button 
-            onClick={onToggleMaximize}
-            className="text-gray-500 hover:text-white p-1 rounded hover:bg-[#2b2f36] transition-colors ml-1"
-            title={isMaximized ? "还原" : "最大化"}
-          >
-            {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
         </div>
       </div>
 
