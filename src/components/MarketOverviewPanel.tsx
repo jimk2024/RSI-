@@ -1,0 +1,195 @@
+import React, { useState, useEffect } from "react";
+import { TrendingUp, TrendingDown, Flame, Activity } from "lucide-react";
+import { useAppContext } from "../AppContext";
+
+interface TickerData {
+  instId: string;
+  last: string;
+  open24h: string;
+  volCcy24h: string; // Turnover in USDT
+  changePercent: number; // Derived
+}
+
+export function MarketOverviewPanel() {
+  const { setOverrideChartSymbol } = useAppContext();
+  const [tickers, setTickers] = useState<TickerData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let ws: WebSocket;
+    let reconnectTimeout: any;
+
+    const connect = () => {
+      ws = new WebSocket("wss://ws.okx.com:8443/ws/v5/public");
+
+      ws.onopen = () => {
+        // Subscribe to all swap tickers
+        ws.send(JSON.stringify({ 
+          op: "subscribe", 
+          args: [{ channel: "tickers", instType: "SWAP" }] 
+        }));
+      };
+
+      // We maintain a map to avoid massive re-renders, and update state periodically
+      const tickerMap = new Map<string, TickerData>();
+      let lastUpdate = Date.now();
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.data && Array.isArray(data.data)) {
+            data.data.forEach((t: any) => {
+              if (t.instId.endsWith("-SWAP")) {
+                const open = parseFloat(t.open24h);
+                const last = parseFloat(t.last);
+                const change = open > 0 ? ((last - open) / open) * 100 : 0;
+                
+                tickerMap.set(t.instId, {
+                  instId: t.instId,
+                  last: t.last,
+                  open24h: t.open24h,
+                  volCcy24h: t.volCcy24h,
+                  changePercent: change
+                });
+              }
+            });
+
+            // Throttle state updates to once per 2 seconds
+            const now = Date.now();
+            if (now - lastUpdate > 2000) {
+              const allTickers = Array.from(tickerMap.values());
+              setTickers(allTickers);
+              setIsLoading(false);
+              lastUpdate = now;
+            }
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    };
+
+    connect();
+
+    return () => {
+      clearTimeout(reconnectTimeout);
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+    };
+  }, []);
+
+  const handleSymbolClick = (symbol: string) => {
+    setOverrideChartSymbol({ id: Math.random().toString(), symbol });
+  };
+
+  // Sort logic
+  const gainers = [...tickers].sort((a, b) => b.changePercent - a.changePercent).slice(0, 15);
+  const losers = [...tickers].sort((a, b) => a.changePercent - b.changePercent).slice(0, 15);
+  const volumeLeaders = [...tickers].sort((a, b) => parseFloat(b.volCcy24h) - parseFloat(a.volCcy24h)).slice(0, 15);
+
+  const formatVol = (vol: string) => {
+    const v = parseFloat(vol);
+    if (v >= 100000000) return `${(v / 100000000).toFixed(2)}亿`;
+    if (v >= 10000) return `${(v / 10000).toFixed(2)}万`;
+    return v.toFixed(0);
+  };
+
+  return (
+    <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 flex-1 flex flex-col min-h-0 text-[#e0e3e7]">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between pb-2 mb-2 border-b border-[#2b2f36] gap-2">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-[#3b82f6]"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3b82f6]"></span>
+          </span>
+          <h3 className="font-bold text-sm tracking-wider text-gray-200 flex items-center gap-1.5 font-sans">
+            <Activity size={16} className="text-[#3b82f6] shrink-0" />
+            <span>市场行情雷达</span>
+            <span className="text-gray-500 text-xs font-normal">Market Radar</span>
+          </h3>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center text-gray-500 text-xs">
+          Loading market data...
+        </div>
+      ) : (
+        <div className="flex flex-row items-stretch gap-4 flex-1 min-h-0 overflow-hidden mt-2">
+          
+          {/* Top Gainers */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#2b2f36]/40">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp size={14} className="text-[#00b07c]" />
+                <span className="text-xs font-bold text-gray-200">24H 涨幅榜</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+              {gainers.map((t, i) => (
+                <div 
+                  key={t.instId} 
+                  onClick={() => handleSymbolClick(t.instId)}
+                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                >
+                  <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
+                  <span className="text-[#00b07c] font-mono">+{t.changePercent.toFixed(2)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top Losers */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#2b2f36]/40">
+              <div className="flex items-center gap-1.5">
+                <TrendingDown size={14} className="text-[#f6465d]" />
+                <span className="text-xs font-bold text-gray-200">24H 跌幅榜</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+              {losers.map((t, i) => (
+                <div 
+                  key={t.instId}
+                  onClick={() => handleSymbolClick(t.instId)} 
+                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                >
+                  <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
+                  <span className="text-[#f6465d] font-mono">{t.changePercent.toFixed(2)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top Volume */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#2b2f36]/40">
+              <div className="flex items-center gap-1.5">
+                <Flame size={14} className="text-[#f0b90b]" />
+                <span className="text-xs font-bold text-gray-200">24H 成交榜</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+              {volumeLeaders.map((t, i) => (
+                <div 
+                  key={t.instId}
+                  onClick={() => handleSymbolClick(t.instId)} 
+                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                >
+                  <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
+                  <span className="text-gray-400 font-mono">${formatVol(t.volCcy24h)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
