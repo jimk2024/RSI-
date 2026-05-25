@@ -7,6 +7,17 @@ export interface OkxApiConfig {
 }
 
 export async function okxPublicFetch(endpoint: string) {
+  try {
+    const directRes = await fetch(`https://www.okx.com${endpoint}`);
+    if (directRes.ok) {
+      const data = await directRes.json();
+      if (data.code === "0") return data.data;
+    }
+  } catch (err) {
+    console.warn("Direct OKX fetch failed, falling back to proxy...", err);
+  }
+
+  // Fallback to proxy
   const res = await fetch('/api/okx/public', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
