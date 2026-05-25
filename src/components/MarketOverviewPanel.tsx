@@ -117,7 +117,7 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId} 
                   onClick={() => handleSymbolClick(t.instId)}
-                  className="flex items-center justify-between p-1 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1 text-[10.5px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
                   <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId}
                   onClick={() => handleSymbolClick(t.instId)} 
-                  className="flex items-center justify-between p-1 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1 text-[10.5px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
                   <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId}
                   onClick={() => handleSymbolClick(t.instId)} 
-                  className="flex items-center justify-between p-1 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1 text-[10.5px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
                   <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export function MarketOverviewPanel() {
                   <div 
                     key={t.instId}
                     onClick={() => handleSymbolClick(t.instId)} 
-                    className="flex items-center justify-between p-1 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                    className="flex items-center justify-between p-1 text-[10.5px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                   >
                     <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
                     <div className="flex items-center gap-2">
