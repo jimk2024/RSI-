@@ -58,18 +58,18 @@ export function OpportunitySearchPanel() {
           const isBullish = ['explosion', 'bottom_fishing', 'ema_golden_cross', 'breakout', 'vol_rejection'].includes(opp.type);
           const isBearish = ['ema_death_cross', 'vol_stagnation'].includes(opp.type);
           
-          let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-[#2b2f36] hover:border-[#3b82f6]/30";
+          let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-transparent hover:border-[#3b82f6]/50";
           if (isBullish) {
-            cardStyle = "bg-emerald-950/20 hover:bg-emerald-950/40 border-emerald-900/40 hover:border-emerald-500/50";
+            cardStyle = "bg-emerald-900/40 hover:bg-emerald-800/50 border-emerald-500/30 hover:border-emerald-400/60";
           } else if (isBearish) {
-            cardStyle = "bg-rose-950/20 hover:bg-rose-950/40 border-rose-900/40 hover:border-rose-500/50";
+            cardStyle = "bg-rose-900/40 hover:bg-rose-800/50 border-rose-500/30 hover:border-rose-400/60";
           }
           
           return (
           <div 
             key={i} 
             onClick={() => setOverrideChartSymbol({ id: "chart-0", symbol: opp.symbol })}
-            className={`flex items-center justify-between p-3 rounded cursor-pointer border transition-colors ${cardStyle}`}
+            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-colors ${cardStyle}`}
           >
             <div className="flex flex-col gap-2 flex-1 min-w-0 pr-2">
               <div className="flex flex-wrap items-center gap-2 min-w-0">
