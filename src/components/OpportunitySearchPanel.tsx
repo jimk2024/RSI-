@@ -60,9 +60,9 @@ export function OpportunitySearchPanel() {
           
           let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-l-2 border-[#3b82f6]";
           if (isBullish) {
-            cardStyle = "bg-emerald-950/30 hover:bg-emerald-900/40 border-l-2 border-[#00b07c]";
+            cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-l-2 border-[#00b07c]";
           } else if (isBearish) {
-            cardStyle = "bg-rose-950/30 hover:bg-rose-900/40 border-l-2 border-[#f6465d]";
+            cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-l-2 border-[#f6465d]";
           }
           
           return (
