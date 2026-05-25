@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Flame, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Flame, Activity, Sparkles } from "lucide-react";
 import { useAppContext } from "../AppContext";
 
 interface TickerData {
@@ -11,7 +11,7 @@ interface TickerData {
 }
 
 export function MarketOverviewPanel() {
-  const { setOverrideChartSymbol } = useAppContext();
+  const { setOverrideChartSymbol, instruments } = useAppContext();
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +71,7 @@ export function MarketOverviewPanel() {
   const gainers = [...tickers].sort((a, b) => b.changePercent - a.changePercent).slice(0, 15);
   const losers = [...tickers].sort((a, b) => a.changePercent - b.changePercent).slice(0, 15);
   const volumeLeaders = [...tickers].sort((a, b) => parseFloat(b.volCcy24h) - parseFloat(a.volCcy24h)).slice(0, 15);
+  const newListings = [...tickers].sort((a, b) => (instruments[b.instId]?.listTime || 0) - (instruments[a.instId]?.listTime || 0)).slice(0, 15);
 
   const formatVol = (vol: string) => {
     const v = parseFloat(vol);
@@ -175,6 +176,36 @@ export function MarketOverviewPanel() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* New Listings */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#2b2f36]/40">
+              <div className="flex items-center gap-1.5">
+                <Sparkles size={14} className="text-[#a074f7]" />
+                <span className="text-xs font-bold text-gray-200">新上交易对</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+              {newListings.map((t, i) => {
+                const listTimeStr = instruments[t.instId]?.listTime ? 
+                  `${new Date(instruments[t.instId].listTime).getMonth() + 1}/${new Date(instruments[t.instId].listTime).getDate()}` 
+                  : 'New';
+                return (
+                  <div 
+                    key={t.instId}
+                    onClick={() => handleSymbolClick(t.instId)} 
+                    className="flex items-center justify-between p-1.5 text-[10px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  >
+                    <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 font-mono">{t.last}</span>
+                      <span className="text-[#a074f7] font-mono whitespace-nowrap min-w-[38px] text-right">{listTimeStr}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

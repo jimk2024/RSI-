@@ -23,6 +23,7 @@ export interface InstrumentInfo {
   ctMult: number;
   tickSz: number;
   lotSz: number;
+  listTime: number;
 }
 
 interface AppContextType {
@@ -182,6 +183,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ctMult: parseFloat(inst.ctMult),
             tickSz: parseFloat(inst.tickSz),
             lotSz: parseFloat(inst.lotSz),
+            listTime: parseInt(inst.listTime, 10) || 0,
           };
         }
         setInstruments(instMap);
