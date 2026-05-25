@@ -150,7 +150,7 @@ export async function runClientScanStep(
                     const r4h_prev = rsi4hList[rsi4hList.length - 2];
 
                     if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
-                      const is4hBullish = r4h >= 65 && r4h_prev < 65;
+                      const is4hBullish = r4h >= 68 && r4h_prev < 68;
                       const is4hBottom = r4h < 30;
 
                       const isExplosion = is15mBullish && is1hBullish && is4hBullish;

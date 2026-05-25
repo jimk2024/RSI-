@@ -61,7 +61,7 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
                <h4 className="text-white font-bold mb-2 flex items-center gap-2">
                  <span className="text-yellow-400">🚀 起爆预警</span>
                </h4>
-               <p className="text-sm text-gray-400">当标的 4小时级别 RSI 刚刚突破 65 并处于扩张期（非高位久居或开始收缩），同时 1小时级别 RSI 连续两根 K线稳住 60 以上，且最核心的 15分钟级别 RSI 突破 55 并且呈现连续上涨态势时触发。该起爆算法能够有效地对各个周期的共振突破点进行监测过滤，寻找极高确定性的右侧动能。信号触发后会在主图表底部印刻醒目的黄色向上标识。</p>
+               <p className="text-sm text-gray-400">当标的 4小时级别 RSI 刚刚突破 68 并处于扩张期（非高位久居或开始收缩），同时 1小时级别 RSI 连续两根 K线稳住 60 以上，且最核心的 15分钟级别 RSI 突破 55 并且呈现连续上涨态势时触发。该起爆算法能够有效地对各个周期的共振突破点进行监测过滤，寻找极高确定性的右侧动能。信号触发后会在主图表底部印刻醒目的黄色向上标识。</p>
              </div>
              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
                <h4 className="text-white font-bold mb-2 flex items-center gap-2">
