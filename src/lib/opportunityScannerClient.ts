@@ -143,14 +143,14 @@ export async function runClientScanStep(
           const upperShadow = cHigh - Math.max(cOpen, cClose);
           const lowerShadow = Math.min(cOpen, cClose) - cLow;
 
-          const isEmaGoldenCross = e20 !== undefined && e50 !== undefined && e20 > e50 && e20_prev <= e50_prev && cClose > e20;
-          const isEmaDeathCross = e20 !== undefined && e50 !== undefined && e20 < e50 && e20_prev >= e50_prev && cClose < e20;
-          const isVolStagnation = volSurgeMultiplier >= 2.0 && r15 > 60 && upperShadow > body * 1.5;
-          const isVolRejection = volSurgeMultiplier >= 2.0 && r15 < 40 && lowerShadow > body * 1.5;
+          const isEmaGoldenCross = e20 !== undefined && e50 !== undefined && e20 > e50 && e20_prev <= e50_prev && cClose > e20 && volSurgeMultiplier >= 1.2 && r15 >= 50 && r15 <= 70;
+          const isEmaDeathCross = e20 !== undefined && e50 !== undefined && e20 < e50 && e20_prev >= e50_prev && cClose < e20 && volSurgeMultiplier >= 1.2 && r15 <= 50 && r15 >= 30;
+          const isVolStagnation = volSurgeMultiplier >= 2.5 && r15 >= 65 && upperShadow >= Math.max(body * 2.0, cClose * 0.002);
+          const isVolRejection = volSurgeMultiplier >= 2.5 && r15 <= 35 && lowerShadow >= Math.max(body * 2.0, cClose * 0.002);
 
-          const prevCloses = closes15m.slice(Math.max(0, latestIdx - 20), latestIdx);
+          const prevCloses = closes15m.slice(Math.max(0, latestIdx - 40), latestIdx); // look back 40 periods (~10 hours)
           const maxPrevClose = prevCloses.length > 0 ? Math.max(...prevCloses) : Infinity;
-          const isBreakout = prevCloses.length > 0 && cClose > maxPrevClose && volSurgeMultiplier > 1.5 && r15 > 55;
+          const isBreakout = prevCloses.length > 0 && cClose > maxPrevClose && volSurgeMultiplier >= 2.0 && r15 >= 60 && cClose > cOpen && body >= upperShadow * 1.5;
 
           const aboveEma20 = e20 !== undefined ? (cClose >= e20) : true;
           const isBullishCandle = cClose > cOpen;
