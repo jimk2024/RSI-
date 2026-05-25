@@ -16,69 +16,50 @@ export function MarketOverviewPanel() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let ws: WebSocket;
-    let reconnectTimeout: any;
+    let timeoutId: any;
+    let isMounted = true;
 
-    const connect = () => {
-      ws = new WebSocket("wss://ws.okx.com:8443/ws/v5/public");
-
-      ws.onopen = () => {
-        // Subscribe to all swap tickers
-        ws.send(JSON.stringify({ 
-          op: "subscribe", 
-          args: [{ channel: "tickers", instType: "SWAP" }] 
-        }));
-      };
-
-      // We maintain a map to avoid massive re-renders, and update state periodically
-      const tickerMap = new Map<string, TickerData>();
-      let lastUpdate = Date.now();
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.data && Array.isArray(data.data)) {
-            data.data.forEach((t: any) => {
-              if (t.instId.endsWith("-SWAP")) {
-                const open = parseFloat(t.open24h);
-                const last = parseFloat(t.last);
-                const change = open > 0 ? ((last - open) / open) * 100 : 0;
-                
-                tickerMap.set(t.instId, {
-                  instId: t.instId,
-                  last: t.last,
-                  open24h: t.open24h,
-                  volCcy24h: t.volCcy24h,
-                  changePercent: change
-                });
-              }
-            });
-
-            // Throttle state updates to once per 2 seconds
-            const now = Date.now();
-            if (now - lastUpdate > 2000) {
-              const allTickers = Array.from(tickerMap.values());
-              setTickers(allTickers);
-              setIsLoading(false);
-              lastUpdate = now;
-            }
+    const fetchTickers = async () => {
+      try {
+        const response = await fetch("https://www.okx.com/api/v5/market/tickers?instType=SWAP");
+        if (!response.ok) throw new Error("Network error");
+        const data = await response.json();
+        
+        if (data.code === "0" && data.data) {
+          const usdtSwaps = data.data.filter((t: any) => t.instId.endsWith("-USDT-SWAP"));
+          
+          const newTickers = usdtSwaps.map((t: any) => {
+            const open = parseFloat(t.open24h);
+            const last = parseFloat(t.last);
+            const change = open > 0 ? ((last - open) / open) * 100 : 0;
+            return {
+              instId: t.instId,
+              last: t.last,
+              open24h: t.open24h,
+              volCcy24h: t.volCcy24h,
+              changePercent: change
+            };
+          });
+          
+          if (isMounted) {
+            setTickers(newTickers);
+            setIsLoading(false);
           }
-        } catch (e) {}
-      };
-
-      ws.onclose = () => {
-        reconnectTimeout = setTimeout(connect, 3000);
-      };
+        }
+      } catch (err) {
+        console.error("Failed to fetch tickers", err);
+      }
+      
+      if (isMounted) {
+        timeoutId = setTimeout(fetchTickers, 4000); // Update every 4 seconds
+      }
     };
 
-    connect();
+    fetchTickers();
 
     return () => {
-      clearTimeout(reconnectTimeout);
-      if (ws) {
-        ws.onclose = null;
-        ws.close();
-      }
+      isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 
