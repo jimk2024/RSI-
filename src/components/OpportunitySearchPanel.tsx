@@ -58,76 +58,79 @@ export function OpportunitySearchPanel() {
           const isBullish = ['explosion', 'bottom_fishing', 'ema_golden_cross', 'breakout', 'vol_rejection'].includes(opp.type);
           const isBearish = ['ema_death_cross', 'vol_stagnation'].includes(opp.type);
           
-          let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-transparent hover:border-[#3b82f6]/50";
+          let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-l-2 border-[#3b82f6]";
           if (isBullish) {
-            cardStyle = "bg-emerald-900/40 hover:bg-emerald-800/50 border-emerald-500/30 hover:border-emerald-400/60";
+            cardStyle = "bg-emerald-950/30 hover:bg-emerald-900/40 border-l-2 border-[#00b07c]";
           } else if (isBearish) {
-            cardStyle = "bg-rose-900/40 hover:bg-rose-800/50 border-rose-500/30 hover:border-rose-400/60";
+            cardStyle = "bg-rose-950/30 hover:bg-rose-900/40 border-l-2 border-[#f6465d]";
           }
           
           return (
           <div 
             key={i} 
             onClick={() => setOverrideChartSymbol({ id: "chart-0", symbol: opp.symbol })}
-            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-colors ${cardStyle}`}
+            className={`p-2 rounded text-[10px] cursor-pointer transition-colors flex flex-col ${cardStyle}`}
           >
-            <div className="flex flex-col gap-2 flex-1 min-w-0 pr-2">
-              <div className="flex flex-wrap items-center gap-2 min-w-0">
-                <span className="text-sm font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
+            <div className="flex flex-col flex-1 min-w-0 pr-1">
+              <div className="flex items-center mb-1.5 min-w-0">
+                <span className="font-bold text-gray-200">{opp.symbol.replace("-SWAP", "")}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-1.5 w-full">
+                {/* Type Label */}
                 {opp.type === "explosion" && (
-                  <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1 bg-yellow-950/50 border border-yellow-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    <Sparkles size={10} className="text-yellow-400" /> 起爆预警
+                  <span className="flex items-center justify-center gap-1 bg-yellow-950/50 border border-yellow-800/40 py-1 px-1 rounded text-yellow-400 font-bold shrink-0 text-center w-full">
+                    <Sparkles size={10} className="shrink-0" /> <span className="truncate">起爆预警</span>
                   </span>
                 )}
                 {opp.type === "bottom_fishing" && (
-                  <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-950/50 border border-emerald-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    <TrendingUp size={10} className="text-emerald-400" /> {opp.typeLabel}
+                  <span className="flex items-center justify-center gap-1 bg-emerald-950/50 border border-emerald-800/40 py-1 px-1 rounded text-emerald-400 font-bold shrink-0 text-center w-full">
+                    <TrendingUp size={10} className="shrink-0" /> <span className="truncate">{opp.typeLabel}</span>
                   </span>
                 )}
                 {(opp.type === "ema_golden_cross" || opp.type === "breakout" || opp.type === "vol_rejection") && (
-                  <span className="text-[10px] font-bold text-blue-400 flex items-center gap-1 bg-blue-950/50 border border-blue-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    <TrendingUp size={10} className="text-blue-400" /> {opp.typeLabel}
+                  <span className="flex items-center justify-center gap-1 bg-blue-950/50 border border-blue-800/40 py-1 px-1 rounded text-blue-400 font-bold shrink-0 text-center w-full">
+                    <TrendingUp size={10} className="shrink-0" /> <span className="truncate">{opp.typeLabel}</span>
                   </span>
                 )}
                 {(opp.type === "ema_death_cross" || opp.type === "vol_stagnation") && (
-                  <span className="text-[10px] font-bold text-rose-400 flex items-center gap-1 bg-rose-950/50 border border-rose-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
-                    <TrendingUp size={10} className="text-rose-400" /> {opp.typeLabel}
+                  <span className="flex items-center justify-center gap-1 bg-rose-950/50 border border-rose-800/40 py-1 px-1 rounded text-rose-400 font-bold shrink-0 text-center w-full">
+                    <TrendingUp size={10} className="shrink-0 rotate-180" /> <span className="truncate">{opp.typeLabel}</span>
                   </span>
                 )}
-              </div>
-              
-              {/* Show auxiliary parameters for live trading verification */}
-              <div className="flex flex-wrap gap-1.5 mt-0.5">
+
                 {/* Volume surge check */}
                 {opp.volSurgeMultiplier !== undefined && opp.volSurgeMultiplier > 0 && (
-                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                  <span className={`flex items-center justify-center gap-1 py-1 px-1 rounded font-bold shrink-0 text-center w-full ${
                     opp.volSurgeMultiplier >= 1.3 
                       ? "bg-amber-950/65 border border-amber-800/60 text-amber-300"
                       : "bg-gray-800 border border-gray-700/80 text-gray-400"
                   }`}>
-                    <Zap size={10} />
-                    放量 {opp.volSurgeMultiplier.toFixed(1)}x
+                    <Zap size={10} className="shrink-0" />
+                    <span className="truncate">放量 {opp.volSurgeMultiplier.toFixed(1)}x</span>
                   </span>
                 )}
+
                 {/* EMA20 Support check */}
                 {opp.aboveEma20 !== undefined && (
-                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                  <span className={`flex items-center justify-center gap-1 py-1 px-1 rounded font-bold shrink-0 text-center w-full ${
                     opp.aboveEma20 
                       ? "bg-sky-950/65 border border-sky-800/60 text-sky-300"
                       : "bg-rose-950/20 border border-rose-900/30 text-rose-300"
                   }`}>
-                    <TrendingUp size={10} />
-                    {opp.aboveEma20 ? "EMA20上" : "EMA压制"}
+                    <TrendingUp size={10} className={`shrink-0 ${opp.aboveEma20 ? '' : 'rotate-180'}`} />
+                    <span className="truncate">{opp.aboveEma20 ? "EMA20上" : "EMA压制"}</span>
                   </span>
                 )}
+
                 {/* Bullish Candle check */}
                 {opp.isBullishCandle !== undefined && (
-                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                  <span className={`flex items-center justify-center gap-1 py-1 px-1 rounded font-bold shrink-0 text-center w-full ${
                     opp.isBullishCandle 
                       ? "bg-emerald-950/60 border border-emerald-800/60 text-emerald-300"
                       : "bg-rose-950/40 border border-rose-800/40 text-rose-400"
                   }`}>
-                    {opp.isBullishCandle ? "阳线支持" : "阴线休整"}
+                    <span className="truncate">{opp.isBullishCandle ? "阳线支持" : "阴线休整"}</span>
                   </span>
                 )}
               </div>
