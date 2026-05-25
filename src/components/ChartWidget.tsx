@@ -684,8 +684,8 @@ export function ChartWidget({ id, defaultSymbol, className = "", style }: ChartW
              sumVolLow += parseFloat(d[3]) * vol;
           });
           
-          const maxH = totalVol > 0 ? sumVolHigh / totalVol : Math.max(...last96Data.map((d: any) => parseFloat(d[2])));
-          const minL = totalVol > 0 ? sumVolLow / totalVol : Math.min(...last96Data.map((d: any) => parseFloat(d[3])));
+          const maxH = Math.max(...last96Data.map((d: any) => parseFloat(d[2])));
+          const minL = Math.min(...last96Data.map((d: any) => parseFloat(d[3])));
 
           if (!srLinesRef.current) {
             srLinesRef.current = {
