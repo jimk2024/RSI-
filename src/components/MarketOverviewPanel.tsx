@@ -64,7 +64,7 @@ export function MarketOverviewPanel() {
   }, []);
 
   const handleSymbolClick = (symbol: string) => {
-    setOverrideChartSymbol({ id: Math.random().toString(), symbol });
+    setOverrideChartSymbol({ id: "chart-0", symbol });
   };
 
   // Sort logic
@@ -116,10 +116,13 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId} 
                   onClick={() => handleSymbolClick(t.instId)}
-                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1.5 text-[10px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
-                  <span className="text-[#00b07c] font-mono">+{t.changePercent.toFixed(2)}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 font-mono">{t.last}</span>
+                    <span className="text-[#00b07c] font-mono whitespace-nowrap min-w-[38px] text-right">+{t.changePercent.toFixed(2)}%</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -138,10 +141,13 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId}
                   onClick={() => handleSymbolClick(t.instId)} 
-                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1.5 text-[10px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
-                  <span className="text-[#f6465d] font-mono">{t.changePercent.toFixed(2)}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 font-mono">{t.last}</span>
+                    <span className="text-[#f6465d] font-mono whitespace-nowrap min-w-[38px] text-right">{t.changePercent.toFixed(2)}%</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -160,10 +166,13 @@ export function MarketOverviewPanel() {
                 <div 
                   key={t.instId}
                   onClick={() => handleSymbolClick(t.instId)} 
-                  className="flex items-center justify-between p-1.5 text-[11px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
+                  className="flex items-center justify-between p-1.5 text-[10px] rounded hover:bg-[#2b2f36] cursor-pointer cursor-crosshair group"
                 >
                   <span className="font-bold text-gray-300 group-hover:text-white transition-colors">{t.instId.replace("-SWAP", "")}</span>
-                  <span className="text-gray-400 font-mono">${formatVol(t.volCcy24h)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#f0b90b] font-mono">{t.last}</span>
+                    <span className="text-gray-400 font-mono whitespace-nowrap min-w-[38px] text-right">${formatVol(t.volCcy24h)}</span>
+                  </div>
                 </div>
               ))}
             </div>
