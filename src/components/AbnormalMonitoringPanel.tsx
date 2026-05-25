@@ -37,147 +37,10 @@ export function AbnormalMonitoringPanel() {
   const basisThreshold = 0.3; // % Premium deviation
 
   // Store the anomaly event feeds for the 4 columns
-  const [oiEvents, setOiEvents] = useState<AnomalyEvent[]>([
-    {
-      id: "oi-1",
-      time: "18:41:02",
-      symbol: "BTC-USDT-SWAP",
-      type: "oi",
-      primaryValue: "+6.85%",
-      isPositive: true,
-      metrics: [
-        { label: "价格波动", value: "+0.18%" },
-        { label: "成交量变动", value: "+14.2%" },
-        { label: "15m增幅", value: "+6.85%" }
-      ]
-    },
-    {
-      id: "oi-2",
-      time: "18:32:15",
-      symbol: "ETH-USDT-SWAP",
-      type: "oi",
-      primaryValue: "+5.12%",
-      isPositive: false,
-      metrics: [
-        { label: "价格波动", value: "-0.28%" },
-        { label: "成交量变动", value: "+8.90%" },
-        { label: "15m增幅", value: "+5.12%" }
-      ]
-    },
-    {
-      id: "oi-3",
-      time: "18:18:40",
-      symbol: "SOL-USDT-SWAP",
-      type: "oi",
-      primaryValue: "+5.98%",
-      isPositive: true,
-      metrics: [
-        { label: "价格波动", value: "+0.05%" },
-        { label: "成交量变动", value: "+11.5%" },
-        { label: "15m增幅", value: "+5.98%" }
-      ]
-    }
-  ]);
-
-  const [fundingEvents, setFundingEvents] = useState<AnomalyEvent[]>([
-    {
-      id: "fund-1",
-      time: "18:43:55",
-      symbol: "DOGE-USDT-SWAP",
-      type: "funding",
-      primaryValue: "+102.50%",
-      isPositive: true,
-      metrics: [
-        { label: "单期费率", value: "+0.103%" },
-        { label: "结算倒计时", value: "02h 16m" },
-        { label: "年化水平", value: "+102.5%" }
-      ]
-    },
-    {
-      id: "fund-2",
-      time: "18:25:10",
-      symbol: "XRP-USDT-SWAP",
-      type: "funding",
-      primaryValue: "-120.45%",
-      isPositive: false,
-      metrics: [
-        { label: "单期费率", value: "-0.121%" },
-        { label: "结算倒计时", value: "02h 16m" },
-        { label: "年化水平", value: "-120.5%" }
-      ]
-    },
-    {
-      id: "fund-3",
-      time: "18:05:12",
-      symbol: "SHIB-USDT-SWAP",
-      type: "funding",
-      primaryValue: "+114.20%",
-      isPositive: true,
-      metrics: [
-        { label: "单期费率", value: "+0.114%" },
-        { label: "结算倒计时", value: "06h 16m" },
-        { label: "年化水平", value: "+114.2%" }
-      ]
-    }
-  ]);
-
-  const [liqEvents, setLiqEvents] = useState<AnomalyEvent[]>([
-    {
-      id: "liq-1",
-      time: "18:42:15",
-      symbol: "BTC-USDT-SWAP",
-      type: "liquidation",
-      primaryValue: "$6.82M (爆多)",
-      isPositive: false, // red for longs liquidations (downward drop)
-      metrics: [
-        { label: "价格偏离", value: "-1.82%" },
-        { label: "累计笔数", value: "482笔" },
-        { label: "瞬时插针", value: "C-Pin Down" }
-      ]
-    },
-    {
-      id: "liq-2",
-      time: "18:35:00",
-      symbol: "ETH-USDT-SWAP",
-      type: "liquidation",
-      primaryValue: "$5.15M (爆空)",
-      isPositive: true, // green for shorts liquidations (bullish spike)
-      metrics: [
-        { label: "价格偏离", value: "+1.65%" },
-        { label: "累计笔数", value: "311笔" },
-        { label: "瞬时插针", value: "C-Pin Up" }
-      ]
-    }
-  ]);
-
-  const [basisEvents, setBasisEvents] = useState<AnomalyEvent[]>([
-    {
-      id: "basis-1",
-      time: "18:44:02",
-      symbol: "BTC-USDT",
-      type: "basis",
-      primaryValue: "+0.38%",
-      isPositive: true,
-      metrics: [
-        { label: "合约价格", value: "88,416.5" },
-        { label: "现货价格", value: "88,081.2" },
-        { label: "均值差", value: "$335.3" }
-      ]
-    },
-    {
-      id: "basis-2",
-      time: "18:29:44",
-      symbol: "ETH-USDT",
-      type: "basis",
-      primaryValue: "+0.42%",
-      isPositive: true,
-      metrics: [
-        { label: "合约价格", value: "3,126.8" },
-        { label: "现货价格", value: "3,113.7" },
-        { label: "均值差", value: "$13.1" }
-      ]
-    }
-  ]);
+  const [oiEvents, setOiEvents] = useState<AnomalyEvent[]>([]);
+  const [fundingEvents, setFundingEvents] = useState<AnomalyEvent[]>([]);
+  const [liqEvents, setLiqEvents] = useState<AnomalyEvent[]>([]);
+  const [basisEvents, setBasisEvents] = useState<AnomalyEvent[]>([]);
 
   // Click symbol to center dashboard chart on that symbol
   const handleSymbolClick = (symbol: string) => {
@@ -189,116 +52,204 @@ export function AbnormalMonitoringPanel() {
     setOverrideChartSymbol({ id: Math.random().toString(), symbol: finalSym });
   };
 
-  // Simulating live ticks matches specified rules exactly
+  // Connect to real OKX data
   useEffect(() => {
     const SYMBOLS = ["BTC-USDT", "ETH-USDT", "SOL-USDT", "DOGE-USDT", "XRP-USDT", "AVAX-USDT", "SUI-USDT", "WIF-USDT"];
+    const SWAP_SYMBOLS = SYMBOLS.map(s => `${s}-SWAP`);
+    
+    let ws: WebSocket;
+    let reconnectTimeout: any;
 
-    const interval = setInterval(() => {
-      // Choose a random column type to trigger an event (1 in 4 chance)
-      const rollType = Math.floor(Math.random() * 4);
-      const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-      const now = new Date();
-      const timeStr = now.toTimeString().split(" ")[0];
-      const id = `${Date.now()}-${Math.random()}`;
+    // Trackers
+    const oiHistory: Record<string, {ts: number, oi: number}[]> = {};
+    const priceMap: Record<string, number> = {};
+    const liqBuffer: Record<string, {ts: number, volUsd: number, side: string}[]> = {};
+    
+    // Throttlers to avoid spam
+    const lastTrigger = {
+      oi: {} as Record<string, number>,
+      funding: {} as Record<string, number>,
+      liq: {} as Record<string, number>,
+      basis: {} as Record<string, number>
+    };
 
-      if (rollType === 0) {
-        // OI Spike Condition: OI increase >= 5% in 15min, price ±0.5% oscillation, vol expands
-        const oiChange = (oiThreshold + (Math.random() * 3)).toFixed(2); // e.g. 5.15% to 8.15%
-        const priceDevVal = (Math.random() * 0.9 - 0.45).toFixed(2); // price within ±0.45% (matches ±0.5% oscillation)
-        const volExp = (10 + (Math.random() * 25)).toFixed(1); // vol expands moderately (e.g. +10% to +35%)
-        const isPos = parseFloat(priceDevVal) >= 0;
+    const contractMult: Record<string, number> = {
+      "BTC-USDT-SWAP": 0.01,
+      "ETH-USDT-SWAP": 0.1,
+      "SOL-USDT-SWAP": 1,
+      "DOGE-USDT-SWAP": 100,
+      "XRP-USDT-SWAP": 100,
+      "AVAX-USDT-SWAP": 1,
+      "SUI-USDT-SWAP": 10,
+      "WIF-USDT-SWAP": 10
+    };
 
-        const newEvent: AnomalyEvent = {
-          id,
-          time: timeStr,
-          symbol: `${symbol}-SWAP`,
-          type: "oi",
-          primaryValue: `+${oiChange}%`,
-          isPositive: isPos,
-          metrics: [
-            { label: "价格波动", value: `${isPos ? "+" : ""}${priceDevVal}%` },
-            { label: "成交量变动", value: `+${volExp}%` },
-            { label: "15m增幅", value: `+${oiChange}%` }
-          ]
-        };
+    const connect = () => {
+      ws = new WebSocket("wss://ws.okx.com:8443/ws/v5/public");
 
-        setOiEvents(prev => [newEvent, ...prev].slice(0, 3));
+      ws.onopen = () => {
+        const args: any[] = [];
+        SWAP_SYMBOLS.forEach(instId => {
+          args.push({ channel: "tickers", instId });
+          args.push({ channel: "open-interest", instId });
+          args.push({ channel: "funding-rate", instId });
+        });
+        SYMBOLS.forEach(instId => {
+          args.push({ channel: "tickers", instId });
+        });
+        args.push({ channel: "liquidation-orders", instType: "SWAP" });
 
-      } else if (rollType === 1) {
-        // Funding Rate Condition: Annualized >= 100% or <= -100% (or single period >= 0.1% or <= -0.1%)
-        const bias = Math.random() > 0.4 ? 1 : -1;
-        // calculate annualized of simulated single period rate
-        const singleRate = bias * (0.10 + Math.random() * 0.08); // single period rate >= 0.1%
-        const annualizedRate = singleRate * 8 * 365; // ~ Annualized %
+        ws.send(JSON.stringify({ op: "subscribe", args }));
+      };
 
-        const newEvent: AnomalyEvent = {
-          id,
-          time: timeStr,
-          symbol: `${symbol}-SWAP`,
-          type: "funding",
-          primaryValue: `${annualizedRate.toFixed(2)}%`,
-          isPositive: bias > 0,
-          metrics: [
-            { label: "单期费率", value: `${bias > 0 ? "+" : ""}${singleRate.toFixed(3)}%` },
-            { label: "结算倒计时", value: "05h 59m" },
-            { label: "年化水平", value: `${bias > 0 ? "+" : ""}${annualizedRate.toFixed(1)}%` }
-          ]
-        };
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (!data.arg || !data.data || !data.data[0]) return;
+          const { channel, instId: msgInstId } = data.arg;
+          if (!channel) return;
 
-        setFundingEvents(prev => [newEvent, ...prev].slice(0, 3));
+          const payload = data.data[0];
+          const now = Date.now();
+          const timeStr = new Date(now).toLocaleTimeString("zh-CN", { hour12: false });
+          const id = `${now}-${Math.random().toString(36).substr(2, 4)}`;
+          const instId = msgInstId || payload.instId;
 
-      } else if (rollType === 2) {
-        // Cascading Liquidations: 1 min global sum >= $5M (5.0M config), price deviation > 1.5%
-        const sizeMillion = (liqThreshold + (Math.random() * 6)).toFixed(2); // $5.0M to $11.0M
-        const devPercent = (1.51 + Math.random() * 1.8).toFixed(2); // deviation > 1.5%
-        const isBullishLiq = Math.random() > 0.5; // Short liquidations spike prices upwards, Long liquidations drop price
+          if (channel === "tickers") {
+            const price = parseFloat(payload.last);
+            priceMap[instId] = price;
 
-        const newEvent: AnomalyEvent = {
-          id,
-          time: timeStr,
-          symbol: `${symbol}-SWAP`,
-          type: "liquidation",
-          primaryValue: `$${sizeMillion}M (${isBullishLiq ? "爆空" : "爆多"})`,
-          isPositive: isBullishLiq,
-          metrics: [
-            { label: "价格偏离", value: `${isBullishLiq ? "+" : "-"}${devPercent}%` },
-            { label: "累计笔数", value: `${Math.floor(200 + Math.random() * 600)}笔` },
-            { label: "瞬时插针", value: isBullishLiq ? "Pin Up 📈" : "Pin Down 📉" }
-          ]
-        };
+            // Basis Check
+            const isSwap = instId && instId.endsWith("-SWAP");
+            if (isSwap) {
+              const spotId = instId.replace("-SWAP", "");
+              if (priceMap[spotId]) {
+                const swapPrice = price;
+                const spotPrice = priceMap[spotId];
+                const deviation = ((swapPrice - spotPrice) / spotPrice) * 100;
+                
+                if (Math.abs(deviation) >= basisThreshold) {
+                  if (now - (lastTrigger.basis[instId] || 0) > 60000) { // 1 min throttle
+                    lastTrigger.basis[instId] = now;
+                    setBasisEvents(prev => [{
+                      id, time: timeStr, symbol: spotId, type: "basis",
+                      primaryValue: `${deviation > 0 ? "+" : ""}${deviation.toFixed(3)}%`,
+                      isPositive: deviation > 0,
+                      metrics: [
+                        { label: "现货价格", value: spotPrice.toFixed(2) },
+                        { label: "合约价格", value: swapPrice.toFixed(2) }
+                      ]
+                    }, ...prev].slice(0, 3));
+                  }
+                }
+              }
+            }
+          } else if (channel === "open-interest") {
+            const oi = parseFloat(payload.oi);
+            if (!oiHistory[instId]) oiHistory[instId] = [];
+            oiHistory[instId].push({ ts: now, oi });
+            
+            // Clean up older than 15 mins
+            oiHistory[instId] = oiHistory[instId].filter(x => now - x.ts <= 15 * 60 * 1000);
+            
+            if (oiHistory[instId].length > 5) {
+              const spanData = oiHistory[instId].filter(x => now - x.ts >= 5 * 60 * 1000);
+              const oldest = spanData.length > 0 ? spanData[0] : oiHistory[instId][0];
+              const oiChange = ((oi - oldest.oi) / oldest.oi) * 100;
+              
+              if (oiChange >= oiThreshold || oiChange <= -oiThreshold) {
+                if (now - (lastTrigger.oi[instId] || 0) > 300000) { // 5 min throttle
+                  lastTrigger.oi[instId] = now;
+                  setOiEvents(prev => [{
+                    id, time: timeStr, symbol: instId, type: "oi",
+                    primaryValue: `${oiChange > 0 ? "+" : ""}${oiChange.toFixed(2)}%`,
+                    isPositive: oiChange > 0,
+                    metrics: [
+                      { label: "15m增幅", value: `${oiChange > 0 ? "+" : ""}${oiChange.toFixed(2)}%` },
+                      { label: "当前OI", value: oi.toLocaleString() }
+                    ]
+                  }, ...prev].slice(0, 3));
+                }
+              }
+            }
+          } else if (channel === "funding-rate") {
+            const ratePercent = parseFloat(payload.fundingRate) * 100;
+            const annualizedRate = ratePercent * 3 * 365;
+            
+            if (Math.abs(annualizedRate) >= fundingThreshold) {
+              if (now - (lastTrigger.funding[instId] || 0) > 1800000) { // 30 min throttle
+                lastTrigger.funding[instId] = now;
+                setFundingEvents(prev => [{
+                  id, time: timeStr, symbol: instId, type: "funding",
+                  primaryValue: `${annualizedRate > 0 ? "+" : ""}${annualizedRate.toFixed(2)}%`,
+                  isPositive: annualizedRate > 0,
+                  metrics: [
+                    { label: "单期费率", value: `${ratePercent > 0 ? "+" : ""}${ratePercent.toFixed(4)}%` },
+                    { label: "年化水平", value: `${annualizedRate > 0 ? "+" : ""}${annualizedRate.toFixed(1)}%` }
+                  ]
+                }, ...prev].slice(0, 3));
+              }
+            }
+          } else if (channel === "liquidation-orders") {
+            const details = payload.details;
+            if (details && details.length > 0) {
+              const currentLiqInstId = instId;
+              if (!liqBuffer[currentLiqInstId]) liqBuffer[currentLiqInstId] = [];
+              
+              details.forEach((d: any) => {
+                const sz = parseFloat(d.sz);
+                const px = parseFloat(d.px);
+                const mult = contractMult[currentLiqInstId] || 1;
+                const volUsd = sz * mult * px;
+                
+                liqBuffer[currentLiqInstId].push({ ts: now, volUsd, side: d.side });
+              });
 
-        setLiqEvents(prev => [newEvent, ...prev].slice(0, 3));
+              // Clean older than 1 min
+              liqBuffer[currentLiqInstId] = liqBuffer[currentLiqInstId].filter(x => now - x.ts <= 60000);
+              
+              const sumUsd = liqBuffer[currentLiqInstId].reduce((acc, b) => acc + b.volUsd, 0);
+              
+              if (sumUsd >= liqThreshold * 1000000) { // $5M default
+                if (now - (lastTrigger.liq[currentLiqInstId] || 0) > 60000) {
+                  lastTrigger.liq[currentLiqInstId] = now;
+                  const isBuy = details[0].side === "buy"; // buy side means short was liquidated
+                  setLiqEvents(prev => [{
+                    id, time: timeStr, symbol: currentLiqInstId, type: "liquidation",
+                    primaryValue: `$${(sumUsd/1000000).toFixed(2)}M (${isBuy ? "爆空" : "爆多"})`,
+                    isPositive: isBuy,
+                    metrics: [
+                      { label: "1m累计", value: `$${(sumUsd/1000000).toFixed(2)}M` },
+                      { label: "价格", value: parseFloat(details[details.length-1].px).toFixed(2) }
+                    ]
+                  }, ...prev].slice(0, 3));
+                }
+              }
+            }
+          }
+        } catch(e) {}
+      };
 
-      } else {
-        // Basis Premium Deviation: (Fprice - Sprice)/Sprice momentary deviation >= 0.3%
-        const deviation = (basisThreshold + (Math.random() * 0.25)).toFixed(3); // dev >= 0.3%
-        const spotPrice = 100 + Math.random() * 88000;
-        const spotPriceStr = spotPrice < 5 ? spotPrice.toFixed(4) : spotPrice < 1000 ? spotPrice.toFixed(2) : Math.floor(spotPrice).toLocaleString();
-        const futPrice = spotPrice * (1 + parseFloat(deviation) / 100);
-        const futPriceStr = spotPrice < 5 ? futPrice.toFixed(4) : spotPrice < 1000 ? futPrice.toFixed(2) : Math.floor(futPrice).toLocaleString();
-        const diffStr = (futPrice - spotPrice).toFixed(spotPrice < 1000 ? 3 : 1);
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+      
+      ws.onerror = (e) => {
+        console.error("OKX WebSocket error in Anomaly Monitor", e);
+      };
+    };
 
-        const newEvent: AnomalyEvent = {
-          id,
-          time: timeStr,
-          symbol, // spot comparison usually pair base
-          type: "basis",
-          primaryValue: `+${deviation}%`,
-          isPositive: true,
-          metrics: [
-            { label: "合约价格", value: futPriceStr },
-            { label: "现货价格", value: spotPriceStr },
-            { label: "瞬间差价", value: `$${diffStr}` }
-          ]
-        };
+    connect();
 
-        setBasisEvents(prev => [newEvent, ...prev].slice(0, 3));
+    return () => {
+      clearTimeout(reconnectTimeout);
+      if (ws) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.close();
       }
-
-    }, Math.random() * 1500 + 2500); // Trigger dynamic notifications every 2.5s - 4s
-
-    return () => clearInterval(interval);
-  }, [oiThreshold, fundingThreshold, liqThreshold, basisThreshold]);
+    };
+  }, []);
 
   return (
     <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 h-full flex flex-col min-h-0 text-[#e0e3e7]">
