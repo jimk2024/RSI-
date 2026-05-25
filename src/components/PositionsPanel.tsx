@@ -68,7 +68,7 @@ export function PositionsPanel() {
   return (
     <div className="flex flex-col gap-3 h-full">
       {/* Positions */}
-      <div className="flex.1 bg-[#161a1e] border border-[#2b2f36] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
+      <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg overflow-hidden flex flex-col min-h-0">
         <div className="flex border-b border-[#2b2f36] shrink-0">
           <button className="flex-1 py-1.5 text-xs font-bold border-b-2 border-[#f0b90b] text-[#f0b90b] flex items-center justify-center gap-1">
             当前持仓 <RefreshCw className="w-3 h-3 animate-spin text-gray-400" />

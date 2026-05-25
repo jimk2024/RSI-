@@ -252,7 +252,7 @@ export function AbnormalMonitoringPanel() {
   }, []);
 
   return (
-    <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 h-full flex flex-col min-h-0 text-[#e0e3e7]">
+    <div className="bg-[#161a1e] border border-[#2b2f36] rounded-lg p-3 flex-1 flex flex-col min-h-0 text-[#e0e3e7]">
       
       {/* Dashboard Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between pb-2 mb-2 border-b border-[#2b2f36] gap-2">

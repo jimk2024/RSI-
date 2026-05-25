@@ -5,7 +5,7 @@ export function TradeLogPanel() {
   const { logs } = useAppContext();
 
   return (
-    <div className="h-full bg-[#161a1e] border border-[#2b2f36] rounded-lg flex flex-col overflow-hidden">
+    <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg flex flex-col overflow-hidden">
       <div className="bg-[#2b2f36] px-3 py-1.5 text-[10px] uppercase tracking-tighter text-gray-400">交易日志</div>
       <div className="flex-1 p-2 font-mono text-[9px] text-gray-400 overflow-y-auto">
         {logs.length === 0 ? (

@@ -98,10 +98,10 @@ function DashboardContent() {
 
         {/* Bottom Row: Left Trade Settings + Right Abnormal Monitoring */}
         <div className="h-[340px] shrink-0 flex gap-3 min-h-0">
-          <div className="w-56 shrink-0 h-full">
+          <div className="w-56 shrink-0 flex flex-col">
             <TradeSettingsPanel />
           </div>
-          <div className="flex-1 min-h-0 h-full">
+          <div className="flex-1 min-h-0 flex flex-col">
             <AbnormalMonitoringPanel />
           </div>
         </div>
