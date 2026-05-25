@@ -6,7 +6,7 @@ export interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "explosion" | "bottom_fishing";
+  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -97,11 +97,14 @@ export async function runClientScanStep(
       const data15m = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=15m&limit=50`);
       if (data15m && data15m.length > 0 && !signal?.aborted) {
         const sorted15m = [...data15m].reverse();
-        const closes15m = sorted15m.map((d: any) => parseFloat(d[4]));
         const opens15m = sorted15m.map((d: any) => parseFloat(d[1]));
+        const highs15m = sorted15m.map((d: any) => parseFloat(d[2]));
+        const lows15m = sorted15m.map((d: any) => parseFloat(d[3]));
+        const closes15m = sorted15m.map((d: any) => parseFloat(d[4]));
         const vols15m = sorted15m.map((d: any) => parseFloat(d[5]));
         const rsi15mList = calculateRSI(closes15m, 14);
         const ema20List = calculateEMA(closes15m, 20);
+        const ema50List = calculateEMA(closes15m, 50);
 
         const latestIdx = closes15m.length - 1;
         const r15 = rsi15mList[latestIdx];
@@ -115,6 +118,59 @@ export async function runClientScanStep(
         ) {
           const is15mBullish = r15 > 55 && r15 > r15_prev && r15_prev > r15_prev2;
           const is15mBottom = r15 > 55 && r15_prev <= 55;
+
+          const e20 = ema20List[latestIdx];
+          const e20_prev = ema20List[latestIdx - 1];
+          const e50 = ema50List[latestIdx];
+          const e50_prev = ema50List[latestIdx - 1];
+
+          const cOpen = opens15m[latestIdx];
+          const cClose = closes15m[latestIdx];
+          const cHigh = highs15m[latestIdx];
+          const cLow = lows15m[latestIdx];
+          const cVol = vols15m[latestIdx];
+
+          let sumVol = 0;
+          let count = 0;
+          for (let idx = Math.max(0, latestIdx - 10); idx < latestIdx; idx++) {
+            sumVol += vols15m[idx];
+            count++;
+          }
+          const avgVol = count > 0 ? (sumVol / count) : 0;
+          const volSurgeMultiplier = avgVol > 0 ? (cVol / avgVol) : 1.0;
+
+          const body = Math.abs(cClose - cOpen);
+          const upperShadow = cHigh - Math.max(cOpen, cClose);
+          const lowerShadow = Math.min(cOpen, cClose) - cLow;
+
+          const isEmaGoldenCross = e20 !== undefined && e50 !== undefined && e20 > e50 && e20_prev <= e50_prev && cClose > e20;
+          const isEmaDeathCross = e20 !== undefined && e50 !== undefined && e20 < e50 && e20_prev >= e50_prev && cClose < e20;
+          const isVolStagnation = volSurgeMultiplier >= 2.0 && r15 > 60 && upperShadow > body * 1.5;
+          const isVolRejection = volSurgeMultiplier >= 2.0 && r15 < 40 && lowerShadow > body * 1.5;
+
+          const prevCloses = closes15m.slice(Math.max(0, latestIdx - 20), latestIdx);
+          const maxPrevClose = prevCloses.length > 0 ? Math.max(...prevCloses) : Infinity;
+          const isBreakout = prevCloses.length > 0 && cClose > maxPrevClose && volSurgeMultiplier > 1.5 && r15 > 55;
+
+          const aboveEma20 = e20 !== undefined ? (cClose >= e20) : true;
+          const isBullishCandle = cClose > cOpen;
+
+          // Push 15m specific opportunities
+          const pushOpp = (type: string, typeLabel: string) => {
+             const opp: Opportunity = {
+                symbol, rsi: r15, rsi1h: 0, rsi4h: 0, type: type as any, typeLabel,
+                volSurgeMultiplier, aboveEma20, isBullishCandle
+             };
+             foundOpps.push(opp);
+             onOpportunityFound(opp);
+          };
+
+          let fired15m = false;
+          if (isEmaGoldenCross) { pushOpp("ema_golden_cross", "EMA金叉"); fired15m = true; }
+          else if (isEmaDeathCross) { pushOpp("ema_death_cross", "EMA死叉"); fired15m = true; }
+          else if (isBreakout) { pushOpp("breakout", "突破前高"); fired15m = true; }
+          else if (isVolStagnation) { pushOpp("vol_stagnation", "高位天量滞涨"); fired15m = true; }
+          else if (isVolRejection) { pushOpp("vol_rejection", "地量长下影"); fired15m = true; }
 
           if (is15mBullish || is15mBottom) {
             // Fetch 1H

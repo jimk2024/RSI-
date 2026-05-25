@@ -7,7 +7,7 @@ interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "explosion" | "bottom_fishing";
+  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -73,45 +73,53 @@ export function OpportunitySearchPanel() {
                     <TrendingUp size={10} className="text-emerald-400" /> {opp.typeLabel}
                   </span>
                 )}
+                {(opp.type === "ema_golden_cross" || opp.type === "breakout" || opp.type === "vol_rejection") && (
+                  <span className="text-[10px] font-bold text-blue-400 flex items-center gap-1 bg-blue-950/50 border border-blue-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
+                    <TrendingUp size={10} className="text-blue-400" /> {opp.typeLabel}
+                  </span>
+                )}
+                {(opp.type === "ema_death_cross" || opp.type === "vol_stagnation") && (
+                  <span className="text-[10px] font-bold text-rose-400 flex items-center gap-1 bg-rose-950/50 border border-rose-800/40 px-1.5 py-0.5 rounded select-none shrink-0">
+                    <TrendingUp size={10} className="text-rose-400" /> {opp.typeLabel}
+                  </span>
+                )}
               </div>
               
               {/* Show auxiliary parameters for live trading verification */}
-              {(opp.type === "explosion" || opp.type === "bottom_fishing") && (
-                <div className="flex flex-wrap gap-1.5 mt-0.5">
-                  {/* Volume surge check */}
-                  {opp.volSurgeMultiplier !== undefined && (
-                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
-                      opp.volSurgeMultiplier >= 1.3 
-                        ? "bg-amber-950/65 border border-amber-800/60 text-amber-300"
-                        : "bg-gray-800 border border-gray-700/80 text-gray-400"
-                    }`}>
-                      <Zap size={10} />
-                      放量 {opp.volSurgeMultiplier.toFixed(1)}x
-                    </span>
-                  )}
-                  {/* EMA20 Support check */}
-                  {opp.aboveEma20 !== undefined && (
-                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
-                      opp.aboveEma20 
-                        ? "bg-sky-950/65 border border-sky-800/60 text-sky-300"
-                        : "bg-rose-950/20 border border-rose-900/30 text-rose-300"
-                    }`}>
-                      <TrendingUp size={10} />
-                      {opp.aboveEma20 ? "EMA20上" : "EMA压制"}
-                    </span>
-                  )}
-                  {/* Bullish Candle check */}
-                  {opp.isBullishCandle !== undefined && (
-                    <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
-                      opp.isBullishCandle 
-                        ? "bg-emerald-950/60 border border-emerald-800/60 text-emerald-300"
-                        : "bg-rose-950/40 border border-rose-800/40 text-rose-400"
-                    }`}>
-                      {opp.isBullishCandle ? "阳线支持" : "阴线休整"}
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-1.5 mt-0.5">
+                {/* Volume surge check */}
+                {opp.volSurgeMultiplier !== undefined && opp.volSurgeMultiplier > 0 && (
+                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                    opp.volSurgeMultiplier >= 1.3 
+                      ? "bg-amber-950/65 border border-amber-800/60 text-amber-300"
+                      : "bg-gray-800 border border-gray-700/80 text-gray-400"
+                  }`}>
+                    <Zap size={10} />
+                    放量 {opp.volSurgeMultiplier.toFixed(1)}x
+                  </span>
+                )}
+                {/* EMA20 Support check */}
+                {opp.aboveEma20 !== undefined && (
+                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                    opp.aboveEma20 
+                      ? "bg-sky-950/65 border border-sky-800/60 text-sky-300"
+                      : "bg-rose-950/20 border border-rose-900/30 text-rose-300"
+                  }`}>
+                    <TrendingUp size={10} />
+                    {opp.aboveEma20 ? "EMA20上" : "EMA压制"}
+                  </span>
+                )}
+                {/* Bullish Candle check */}
+                {opp.isBullishCandle !== undefined && (
+                  <span className={`text-[10px] leading-none px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 ${
+                    opp.isBullishCandle 
+                      ? "bg-emerald-950/60 border border-emerald-800/60 text-emerald-300"
+                      : "bg-rose-950/40 border border-rose-800/40 text-rose-400"
+                  }`}>
+                    {opp.isBullishCandle ? "阳线支持" : "阴线休整"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}
