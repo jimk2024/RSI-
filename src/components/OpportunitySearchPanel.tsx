@@ -238,121 +238,141 @@ export function OpportunitySearchPanel() {
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto space-y-5 text-sm text-gray-300">
-                <div className="space-y-2">
-                  <h4 className="font-bold text-[#00b07c] flex items-center gap-2">
-                    <Sparkles size={14} /> 起爆预警 (Explosion)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    多级别共振起飞条件：
-                    <br />
-                    <span className="text-gray-300">
-                      15M/1H/4H
-                      RSI全部大于等于68，且前一根K线对应周期的RSI均小于68。
-                    </span>
-                    要求伴随放量（15M成交量放大1.25倍以上），收盘站上EMA20，且为阳线。
-                  </p>
-                </div>
+              <div className="p-5 overflow-y-auto bg-[#161a1e]/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 起爆预警 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-[#00b07c]/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-[#00b07c]/10 rounded text-[#00b07c]">
+                        <Sparkles size={16} />
+                      </div>
+                      <h4 className="font-bold text-[#00b07c] text-sm">起爆预警 (Explosion)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">多级别共振起飞条件</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">15M/1H/4H RSI全部大于等于68，且前一根K线对应周期的RSI均小于68。</span>
+                        要求伴随放量（15M成交量放大1.25倍以上），收盘站上EMA20，且为阳线。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-emerald-400 flex items-center gap-2">
-                    <TrendingUp size={14} /> 抄底预警 (Bottom Fishing)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    超卖反弹抓底逻辑：
-                    <br />
-                    <span className="text-gray-300">
-                      15M/4H RSI由30以下超卖区快速反弹（15M {">"} 55，1H {">"}{" "}
-                      40并伴随前期超卖，4H从底部分反弹）。
-                    </span>
-                    要求成交量放大1.2倍以上，且为阳线。
-                  </p>
-                </div>
+                  {/* 抄底预警 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-emerald-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-emerald-500/10 rounded text-emerald-400">
+                        <TrendingUp size={16} />
+                      </div>
+                      <h4 className="font-bold text-emerald-400 text-sm">抄底预警 (Bottom Fishing)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">超卖反弹抓底逻辑</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">15M/4H RSI由30以下超卖区快速反弹（15M {">"} 55，1H {">"} 40并伴随前期超卖，4H从底部分反弹）。</span>
+                        要求成交量放大1.2倍以上，且为阳线。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-blue-400 flex items-center gap-2">
-                    <TrendingUp size={14} /> 4H RSI急涨 (4H RSI Jump)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    大周期强动能拉升：
-                    <br />
-                    <span className="text-gray-300">
-                      当前4H级别的RSI相比上一个4H级别的RSI，单根K线内增幅超过10点（RSI差值
-                      {">="}10）。
-                    </span>
-                    意味着大级别资金快速吸筹拉升。此信号会实时通过15M周期获取触发。
-                  </p>
-                </div>
+                  {/* 4H RSI急涨 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-blue-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-blue-500/10 rounded text-blue-400">
+                        <TrendingUp size={16} />
+                      </div>
+                      <h4 className="font-bold text-blue-400 text-sm">4H RSI急涨 (4H RSI Jump)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">大周期强动能拉升</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">当前4H级别的RSI相比上一个4H级别的RSI，单根K线内增幅超过10点（RSI差值{">="}10）。</span>
+                        意味着大级别资金快速吸筹拉升。此信号会实时通过15M周期获取触发。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-blue-400 flex items-center gap-2">
-                    <TrendingUp size={14} /> 1H上穿4H (1H RSI Cross 4H RSI)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    日内趋势转强信号：
-                    <br />
-                    <span className="text-gray-300">
-                      1H RSI在最近两个15M闭合时间内，由下方上穿4H RSI。
-                    </span>
-                    表示中短线动能开始强于长线动能，属于早期上涨结构的转折特征。
-                  </p>
-                </div>
+                  {/* 1H上穿4H */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-blue-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-blue-500/10 rounded text-blue-400">
+                        <TrendingUp size={16} />
+                      </div>
+                      <h4 className="font-bold text-blue-400 text-sm">1H上穿4H (1H RSI Cross 4H RSI)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">日内趋势转强信号</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">1H RSI在最近两个15M闭合时间内，由下方上穿4H RSI。</span>
+                        表示中短线动能开始强于长线动能，属于早期上涨结构的转折特征。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-blue-400 flex items-center gap-2">
-                    <TrendingUp size={14} /> 均线金叉 (EMA Golden Cross /
-                    Breakout)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    趋势启动特征：
-                    <br />
-                    <span className="text-gray-300">
-                      基于15M级别，EMA20上穿EMA50（金叉），或者价格强力突破上方密集均线抑制。
-                    </span>
-                  </p>
-                </div>
+                  {/* 均线金叉 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-blue-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-blue-500/10 rounded text-blue-400">
+                        <TrendingUp size={16} />
+                      </div>
+                      <h4 className="font-bold text-blue-400 text-sm">均线金叉 (EMA Breakout)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">趋势启动特征</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">基于15M级别，EMA20上穿EMA50（金叉），或者价格强力突破上方密集均线抑制。</span>
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-blue-400 flex items-center gap-2">
-                    <TrendingUp size={14} /> 地量长下影 (Volume Rejection)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    探底遇阻买盘介入：
-                    <br />
-                    <span className="text-gray-300">
-                      在价格缩量（地量）状态下，K线收出较长的下影线。
-                    </span>
-                    说明下探没有抛压且有买盘承接，可能随时反转。
-                  </p>
-                </div>
+                  {/* 地量长下影 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-blue-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-blue-500/10 rounded text-blue-400">
+                        <TrendingUp size={16} />
+                      </div>
+                      <h4 className="font-bold text-blue-400 text-sm">地量长下影 (Volume Rejection)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">探底遇阻买盘介入</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">在价格缩量（地量）状态下，K线收出较长的下影线。</span>
+                        说明下探没有抛压且有买盘承接，可能随时反转。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-rose-400 flex items-center gap-2">
-                    <TrendingUp size={14} className="rotate-180" /> 高位天量滞涨
-                    (Volume Stagnation)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    潜在见顶预警：
-                    <br />
-                    <span className="text-gray-300">
-                      处于上升趋势末端，爆出天量成交额但K线价格并未继续上涨（收长上影线或十字星）。
-                    </span>
-                    通常是主力出货或多头力竭的信号。
-                  </p>
-                </div>
+                  {/* 高位天量滞涨 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-rose-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-rose-500/10 rounded text-rose-400">
+                        <TrendingUp size={16} className="rotate-180" />
+                      </div>
+                      <h4 className="font-bold text-rose-400 text-sm">高位天量滞涨 (Volume Stagnation)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">潜在见顶预警</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">处于上升趋势末端，爆出天量成交额但K线价格并未继续上涨（收长上影线或十字星）。</span>
+                        通常是主力出货或多头力竭的信号。
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h4 className="font-bold text-rose-400 flex items-center gap-2">
-                    <TrendingUp size={14} className="rotate-180" />{" "}
-                    死叉/动能衰减 (EMA Death Cross)
-                  </h4>
-                  <p className="pl-5 text-gray-400">
-                    下行趋势确认：
-                    <br />
-                    <span className="text-gray-300">
-                      基于15M级别，EMA20下穿EMA50（死叉），且RSI指标表现疲软转空。
-                    </span>
-                  </p>
+                  {/* 死叉/动能衰减 */}
+                  <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-rose-500/50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="p-1.5 bg-rose-500/10 rounded text-rose-400">
+                        <TrendingUp size={16} className="rotate-180" />
+                      </div>
+                      <h4 className="font-bold text-rose-400 text-sm">死叉/动能衰减 (EMA Death Cross)</h4>
+                    </div>
+                    <div className="text-xs text-gray-400 space-y-1.5">
+                      <p className="text-gray-300 font-medium pb-1.5 border-b border-[#2b2f36]/50 mb-1.5">下行趋势确认</p>
+                      <p className="leading-relaxed">
+                        <span className="text-gray-300">基于15M级别，EMA20下穿EMA50（死叉），且RSI指标表现疲软转空。</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="p-4 border-t border-[#2b2f36] flex justify-end bg-[#1a1e24]">
