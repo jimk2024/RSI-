@@ -24,7 +24,7 @@ export function OpportunitySearchPanel() {
     scanLastCompletedAt: lastCompletedAt,
   } = useAppContext();
 
-  const [activeTab, setActiveTab] = useState<"all" | "explosion" | "extreme_buy" | "extreme_sell">("all");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   // Filter list based on selected tab
   const filteredOpportunities = opportunities.filter(opp => {
@@ -55,7 +55,7 @@ export function OpportunitySearchPanel() {
         )}
         
         {filteredOpportunities.map((opp, i) => {
-          const isBullish = ['explosion', 'bottom_fishing', 'ema_golden_cross', 'breakout', 'vol_rejection'].includes(opp.type);
+          const isBullish = ['explosion', 'bottom_fishing', 'ema_golden_cross', 'breakout', 'vol_rejection', 'rsi_jump_4h'].includes(opp.type);
           const isBearish = ['ema_death_cross', 'vol_stagnation'].includes(opp.type);
           
           let cardStyle = "bg-[#1e2329] hover:bg-[#2b2f36] border-l-2 border-[#3b82f6]";
@@ -88,7 +88,7 @@ export function OpportunitySearchPanel() {
                     <TrendingUp size={10} className="shrink-0" /> <span className="truncate">{opp.typeLabel}</span>
                   </span>
                 )}
-                {(opp.type === "ema_golden_cross" || opp.type === "breakout" || opp.type === "vol_rejection") && (
+                {(opp.type === "ema_golden_cross" || opp.type === "breakout" || opp.type === "vol_rejection" || opp.type === "rsi_jump_4h") && (
                   <span className="flex items-center justify-center gap-1 bg-blue-950/50 border border-blue-800/40 py-1 px-1 rounded text-blue-400 font-bold shrink-0 text-center w-full">
                     <TrendingUp size={10} className="shrink-0" /> <span className="truncate">{opp.typeLabel}</span>
                   </span>

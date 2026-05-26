@@ -6,7 +6,7 @@ export interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout";
+  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout" | "rsi_jump_4h";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -172,6 +172,39 @@ export async function runClientScanStep(
           else if (isVolStagnation) { pushOpp("vol_stagnation", "高位天量滞涨"); fired15m = true; }
           else if (isVolRejection) { pushOpp("vol_rejection", "地量长下影"); fired15m = true; }
 
+          // unconditionally fetch 4H for RSI jump strategy
+          await new Promise(r => setTimeout(r, 60));
+          if (signal?.aborted) break;
+
+          let r4h = 0;
+          let is4hBullish = false;
+          let is4hBottom = false;
+
+          const data4h = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
+          if (data4h && data4h.length > 0 && !signal?.aborted) {
+            const closes4h = [...data4h].reverse().map((d: any) => parseFloat(d[4]));
+            const rsi4hList = calculateRSI(closes4h, 14);
+            r4h = rsi4hList[rsi4hList.length - 1];
+            const r4h_prev = rsi4hList[rsi4hList.length - 2];
+            const r4h_prev2 = rsi4hList[rsi4hList.length - 3];
+
+            if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
+              is4hBullish = r4h >= 68 && r4h_prev < 68;
+              is4hBottom = r4h < 30;
+
+              if (r4h_prev2 !== undefined && r4h_prev2 !== null) {
+                if (r4h_prev - r4h_prev2 >= 10) {
+                  const opp: Opportunity = {
+                    symbol, rsi: r15, rsi1h: 0, rsi4h: r4h, type: "rsi_jump_4h", typeLabel: "4H RSI急涨",
+                    volSurgeMultiplier, aboveEma20, isBullishCandle
+                  };
+                  foundOpps.push(opp);
+                  onOpportunityFound(opp);
+                }
+              }
+            }
+          }
+
           if (is15mBullish || is15mBottom) {
             // Fetch 1H
             await new Promise(r => setTimeout(r, 60));
@@ -194,61 +227,44 @@ export async function runClientScanStep(
                 const is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
 
                 if (is1hBullish || is1hBottom) {
-                  // Fetch 4H
-                  await new Promise(r => setTimeout(r, 60));
-                  if (signal?.aborted) break;
+                  const isExplosion = is15mBullish && is1hBullish && is4hBullish;
+                  const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
 
-                  const data4h = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
-                  if (data4h && data4h.length > 0 && !signal?.aborted) {
-                    const closes4h = [...data4h].reverse().map((d: any) => parseFloat(d[4]));
-                    const rsi4hList = calculateRSI(closes4h, 14);
-                    const r4h = rsi4hList[rsi4hList.length - 1];
-                    const r4h_prev = rsi4hList[rsi4hList.length - 2];
+                  if (isExplosion || isBottomFishing) {
+                    const currentClose = closes15m[latestIdx];
+                    const currentOpen = opens15m[latestIdx];
+                    const currentVol = vols15m[latestIdx];
 
-                    if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
-                      const is4hBullish = r4h >= 68 && r4h_prev < 68;
-                      const is4hBottom = r4h < 30;
+                    let sumVol = 0;
+                    let count = 0;
+                    for (let idx = Math.max(0, latestIdx - 10); idx < latestIdx; idx++) {
+                      sumVol += vols15m[idx];
+                      count++;
+                    }
+                    const avgVol = count > 0 ? (sumVol / count) : 0;
+                    const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
 
-                      const isExplosion = is15mBullish && is1hBullish && is4hBullish;
-                      const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
+                    const ema20Val = ema20List[latestIdx];
+                    const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
+                    const isBullishCandle = currentClose > currentOpen;
 
-                      if (isExplosion || isBottomFishing) {
-                        const currentClose = closes15m[latestIdx];
-                        const currentOpen = opens15m[latestIdx];
-                        const currentVol = vols15m[latestIdx];
+                    const validExplosion = isExplosion && isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25;
+                    const validBottom = isBottomFishing && isBullishCandle && volSurgeMultiplier >= 1.2;
 
-                        let sumVol = 0;
-                        let count = 0;
-                        for (let idx = Math.max(0, latestIdx - 10); idx < latestIdx; idx++) {
-                          sumVol += vols15m[idx];
-                          count++;
-                        }
-                        const avgVol = count > 0 ? (sumVol / count) : 0;
-                        const volSurgeMultiplier = avgVol > 0 ? (currentVol / avgVol) : 1.0;
-
-                        const ema20Val = ema20List[latestIdx];
-                        const aboveEma20 = ema20Val !== null && ema20Val !== undefined ? (currentClose >= ema20Val) : true;
-                        const isBullishCandle = currentClose > currentOpen;
-
-                        const validExplosion = isExplosion && isBullishCandle && aboveEma20 && volSurgeMultiplier >= 1.25;
-                        const validBottom = isBottomFishing && isBullishCandle && volSurgeMultiplier >= 1.2;
-
-                        if (validExplosion || validBottom) {
-                          const opp: Opportunity = {
-                            symbol,
-                            rsi: r15,
-                            rsi1h: r1h,
-                            rsi4h: r4h,
-                            type: validExplosion ? "explosion" : "bottom_fishing",
-                            typeLabel: validExplosion ? "起爆预警" : "抄底预警",
-                            volSurgeMultiplier,
-                            aboveEma20,
-                            isBullishCandle
-                          };
-                          foundOpps.push(opp);
-                          onOpportunityFound(opp);
-                        }
-                      }
+                    if (validExplosion || validBottom) {
+                      const opp: Opportunity = {
+                        symbol,
+                        rsi: r15,
+                        rsi1h: r1h,
+                        rsi4h: r4h,
+                        type: validExplosion ? "explosion" : "bottom_fishing",
+                        typeLabel: validExplosion ? "起爆预警" : "抄底预警",
+                        volSurgeMultiplier,
+                        aboveEma20,
+                        isBullishCandle
+                      };
+                      foundOpps.push(opp);
+                      onOpportunityFound(opp);
                     }
                   }
                 }
