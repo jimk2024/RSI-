@@ -6,7 +6,7 @@ export interface Opportunity {
   rsi: number;
   rsi1h: number;
   rsi4h: number;
-  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout" | "rsi_jump_4h";
+  type: "explosion" | "bottom_fishing" | "ema_golden_cross" | "ema_death_cross" | "vol_stagnation" | "vol_rejection" | "breakout" | "rsi_jump_4h" | "rsi_cross_1h_4h";
   typeLabel: string;
   volSurgeMultiplier?: number;
   aboveEma20?: boolean;
@@ -172,6 +172,32 @@ export async function runClientScanStep(
           else if (isVolStagnation) { pushOpp("vol_stagnation", "高位天量滞涨"); fired15m = true; }
           else if (isVolRejection) { pushOpp("vol_rejection", "地量长下影"); fired15m = true; }
 
+          // unconditionally fetch 1H for RSI cross strategy
+          await new Promise(r => setTimeout(r, 60));
+          if (signal?.aborted) break;
+
+          let r1h = 0;
+          let is1hBullish = false;
+          let is1hBottom = false;
+          let closes1h: number[] = [];
+
+          const data1h = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=50`);
+          if (data1h && data1h.length > 0 && !signal?.aborted) {
+            closes1h = [...data1h].reverse().map((d: any) => parseFloat(d[4]));
+            const rsi1hList = calculateRSI(closes1h, 14);
+            r1h = rsi1hList[rsi1hList.length - 1];
+            const r1h_prev = rsi1hList[rsi1hList.length - 2];
+
+            if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
+              is1hBullish = r1h > 60 && r1h_prev > 60;
+              let has1hBelow30 = false;
+              for (let k = Math.max(0, rsi1hList.length - 6); k < rsi1hList.length - 1; k++) {
+                if (rsi1hList[k] < 30) has1hBelow30 = true;
+              }
+              is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
+            }
+          }
+
           // unconditionally fetch 4H for RSI jump strategy
           await new Promise(r => setTimeout(r, 60));
           if (signal?.aborted) break;
@@ -179,56 +205,64 @@ export async function runClientScanStep(
           let r4h = 0;
           let is4hBullish = false;
           let is4hBottom = false;
+          let closes4h: number[] = [];
 
           const data4h = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=4H&limit=50`);
           if (data4h && data4h.length > 0 && !signal?.aborted) {
-            const closes4h = [...data4h].reverse().map((d: any) => parseFloat(d[4]));
+            closes4h = [...data4h].reverse().map((d: any) => parseFloat(d[4]));
             const rsi4hList = calculateRSI(closes4h, 14);
             r4h = rsi4hList[rsi4hList.length - 1];
             const r4h_prev = rsi4hList[rsi4hList.length - 2];
-            const r4h_prev2 = rsi4hList[rsi4hList.length - 3];
 
             if (r4h !== undefined && r4h !== null && r4h_prev !== undefined && r4h_prev !== null) {
               is4hBullish = r4h >= 68 && r4h_prev < 68;
               is4hBottom = r4h < 30;
 
-              if (r4h_prev2 !== undefined && r4h_prev2 !== null) {
-                if (r4h_prev - r4h_prev2 >= 10) {
-                  const opp: Opportunity = {
-                    symbol, rsi: r15, rsi1h: 0, rsi4h: r4h, type: "rsi_jump_4h", typeLabel: "4H RSI急涨",
-                    volSurgeMultiplier, aboveEma20, isBullishCandle
-                  };
-                  foundOpps.push(opp);
-                  onOpportunityFound(opp);
-                }
+              if (r4h - r4h_prev >= 10) {
+                const opp: Opportunity = {
+                  symbol, rsi: r15, rsi1h: r1h, rsi4h: r4h, type: "rsi_jump_4h", typeLabel: "4H RSI急涨",
+                  volSurgeMultiplier, aboveEma20, isBullishCandle
+                };
+                foundOpps.push(opp);
+                onOpportunityFound(opp);
               }
             }
           }
 
+          // Check for 1H crossing 4H over last 2 15M candles
+          if (closes1h.length > 0 && closes4h.length > 0 && closes15m.length >= 3) {
+            const computeRsiWithClose = (baseCloses: number[], subClose: number) => {
+              const arr = [...baseCloses];
+              arr[arr.length - 1] = subClose;
+              const rsis = calculateRSI(arr, 14);
+              return rsis[rsis.length - 1];
+            };
+
+            const r1h_t1 = computeRsiWithClose(closes1h, closes15m[latestIdx - 1]);
+            const r1h_t2 = computeRsiWithClose(closes1h, closes15m[latestIdx - 2]);
+            const r1h_t3 = computeRsiWithClose(closes1h, closes15m[latestIdx - 3]);
+
+            const r4h_t1 = computeRsiWithClose(closes4h, closes15m[latestIdx - 1]);
+            const r4h_t2 = computeRsiWithClose(closes4h, closes15m[latestIdx - 2]);
+            const r4h_t3 = computeRsiWithClose(closes4h, closes15m[latestIdx - 3]);
+            
+            const crossAtT1 = r1h_t1 > r4h_t1 && r1h_t2 <= r4h_t2;
+            const crossAtT2 = r1h_t2 > r4h_t2 && r1h_t3 <= r4h_t3;
+            
+            if (crossAtT1 || crossAtT2) {
+              const opp: Opportunity = {
+                symbol, rsi: r15, rsi1h: r1h, rsi4h: r4h, type: "rsi_cross_1h_4h", typeLabel: "1H上穿4H",
+                volSurgeMultiplier, aboveEma20, isBullishCandle
+              };
+              foundOpps.push(opp);
+              onOpportunityFound(opp);
+            }
+          }
+
           if (is15mBullish || is15mBottom) {
-            // Fetch 1H
-            await new Promise(r => setTimeout(r, 60));
-            if (signal?.aborted) break;
-
-            const data1h = await okxDirectOrProxyFetch(`/api/v5/market/candles?instId=${symbol}&bar=1H&limit=50`);
-            if (data1h && data1h.length > 0 && !signal?.aborted) {
-              const closes1h = [...data1h].reverse().map((d: any) => parseFloat(d[4]));
-              const rsi1hList = calculateRSI(closes1h, 14);
-              const r1h = rsi1hList[rsi1hList.length - 1];
-              const r1h_prev = rsi1hList[rsi1hList.length - 2];
-
-              if (r1h !== undefined && r1h !== null && r1h_prev !== undefined && r1h_prev !== null) {
-                const is1hBullish = r1h > 60 && r1h_prev > 60;
-                
-                let has1hBelow30 = false;
-                for (let k = Math.max(0, rsi1hList.length - 6); k < rsi1hList.length - 1; k++) {
-                  if (rsi1hList[k] < 30) has1hBelow30 = true;
-                }
-                const is1hBottom = r1h > 40 && has1hBelow30 && r1h_prev <= 40;
-
-                if (is1hBullish || is1hBottom) {
-                  const isExplosion = is15mBullish && is1hBullish && is4hBullish;
-                  const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
+            if (is1hBullish || is1hBottom) {
+              const isExplosion = is15mBullish && is1hBullish && is4hBullish;
+              const isBottomFishing = is15mBottom && is1hBottom && is4hBottom;
 
                   if (isExplosion || isBottomFishing) {
                     const currentClose = closes15m[latestIdx];
@@ -265,8 +299,6 @@ export async function runClientScanStep(
                       };
                       foundOpps.push(opp);
                       onOpportunityFound(opp);
-                    }
-                  }
                 }
               }
             }
