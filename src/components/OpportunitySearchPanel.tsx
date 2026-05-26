@@ -229,7 +229,7 @@ export function OpportunitySearchPanel() {
             ></div>
             
             {/* Modal Container */}
-            <div className="bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col relative z-10 overflow-hidden">
+            <div className="bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl max-w-4xl w-full max-h-[70vh] flex flex-col relative z-10 overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-[#2b2f36] shrink-0 bg-[#1e2329]">
                 <div className="flex items-center gap-2">
                   <HelpCircle size={18} className="text-[#3b82f6]" />
