@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAppContext } from "../AppContext";
 import {
   Sparkles,
@@ -215,7 +216,7 @@ export function OpportunitySearchPanel() {
         </div>
       </div>
 
-      {showInfo && (
+      {showInfo && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col relative overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-[#2b2f36]">
@@ -359,7 +360,8 @@ export function OpportunitySearchPanel() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
