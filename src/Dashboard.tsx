@@ -35,7 +35,7 @@ function DashboardContent() {
       {/* Column 1: Left Navigation & Settings */}
       <div className="w-56 shrink-0 flex flex-col gap-3 min-h-0 overflow-y-auto">
         {/* Brand Module */}
-        <div className="shrink-0 bg-[#161a1e] border border-[#2b2f36] rounded-lg py-5 px-3 flex flex-col justify-center items-center relative shadow-inner hover:bg-[#1e2329] transition-colors group">
+        <div className="flex-1 bg-[#161a1e] border border-[#2b2f36] rounded-lg py-5 px-3 flex flex-col justify-center items-center relative shadow-inner hover:bg-[#1e2329] transition-colors group">
           {/* Tech accent line */}
           <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-gray-400/30 to-transparent"></div>
 
