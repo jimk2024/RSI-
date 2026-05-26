@@ -219,11 +219,18 @@ export function OpportunitySearchPanel() {
       {showInfo &&
         createPortal(
           <div
-            className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
             style={{ zIndex: 999999 }}
           >
-            <div className="bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col relative overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-[#2b2f36]">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+              onClick={() => setShowInfo(false)}
+            ></div>
+            
+            {/* Modal Container */}
+            <div className="bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col relative z-10 overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-[#2b2f36] shrink-0 bg-[#1e2329]">
                 <div className="flex items-center gap-2">
                   <HelpCircle size={18} className="text-[#3b82f6]" />
                   <h3 className="text-base font-bold text-white">
@@ -232,13 +239,14 @@ export function OpportunitySearchPanel() {
                 </div>
                 <button
                   onClick={() => setShowInfo(false)}
-                  className="p-1 hover:bg-[#2b2f36] rounded-md transition-colors text-gray-400 hover:text-white"
+                  className="p-1.5 hover:bg-[#2b2f36] rounded-md transition-colors text-gray-400 hover:text-white"
+                  title="关闭"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto bg-[#161a1e]/50">
+              <div className="p-5 overflow-y-auto bg-[#161a1e]/50 flex-1 min-h-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* 起爆预警 */}
                   <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36] shadow-sm hover:border-[#00b07c]/50 transition-colors">
@@ -375,10 +383,10 @@ export function OpportunitySearchPanel() {
                   </div>
                 </div>
               </div>
-              <div className="p-4 border-t border-[#2b2f36] flex justify-end bg-[#1a1e24]">
+              <div className="p-4 border-t border-[#2b2f36] flex justify-end shrink-0 bg-[#1a1e24]">
                 <button
                   onClick={() => setShowInfo(false)}
-                  className="px-4 py-1.5 bg-[#2b2f36] hover:bg-[#3b4048] text-white text-sm font-medium rounded transition-colors"
+                  className="px-6 py-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
                 >
                   我知道了
                 </button>
