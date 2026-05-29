@@ -71,6 +71,16 @@ db.exec(`
   );
 `);
 
+// Add last_login_at column if it does not exist
+try {
+  db.exec("ALTER TABLE users ADD COLUMN last_login_at DATETIME;");
+} catch (e: any) {
+  // Ignore error if column already exists (duplicate column name)
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Error altering users table:", e);
+  }
+}
+
 // Import crypto for hashing
 import crypto from 'crypto';
 

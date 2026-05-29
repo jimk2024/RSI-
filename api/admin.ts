@@ -93,7 +93,7 @@ router.get("/stats", requireAdmin, (req, res) => {
 // Get Users
 router.get("/users", requireAdmin, (req, res) => {
   try {
-    const users = db.prepare("SELECT id, email, membership_expiry, created_at FROM users ORDER BY id DESC").all();
+    const users = db.prepare("SELECT id, email, membership_expiry, created_at, last_login_at FROM users ORDER BY id DESC").all();
     res.json({ users });
   } catch (error) {
     res.status(500).json({ error: "查询失败" });

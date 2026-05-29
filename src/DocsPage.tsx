@@ -52,26 +52,38 @@ export function DocsPage({ onEnter }: { onEnter?: () => void }) {
         </div>
 
         <div className="bg-[#161a1e] border border-[#2b2f36] rounded-xl p-8 mb-8">
-          <h3 className="text-xl font-bold mb-4 text-white">机会预警面板 (共振预警)</h3>
+          <h3 className="text-xl font-bold mb-4 text-white">全自动八大策略跨周期预警扫描</h3>
           <p className="text-gray-400 mb-4 leading-relaxed">
-            左侧的机会预警面板可持续对市场全盘进行轮询扫描，寻找市场极具潜力的异动信号：
+            左侧的机会预警面板可持续对市场全盘进行高频轮询扫描，结合动能、均线、量价背离等参数寻找异动标的：
           </p>
-          <div className="space-y-4 mb-4">
+          <div className="space-y-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
                <h4 className="text-white font-bold mb-2 flex items-center gap-2">
-                 <span className="text-yellow-400">🚀 起爆预警</span>
+                 <span className="text-[#00b07c]">🚀 起爆预警</span>
                </h4>
-               <p className="text-sm text-gray-400">当标的 4小时级别 RSI 刚刚突破 68 并处于扩张期（非高位久居或开始收缩），同时 1小时级别 RSI 连续两根 K线稳住 60 以上，且最核心的 15分钟级别 RSI 突破 55 并且呈现连续上涨态势时触发。该起爆算法能够有效地对各个周期的共振突破点进行监测过滤，寻找极高确定性的右侧动能。信号触发后会在主图表底部印刻醒目的黄色向上标识。</p>
+               <p className="text-sm text-gray-400">15M/1H/4H RSI全部大于等于68且前值小于68，伴随放量并站上均线。代表多周期共振右侧看涨起爆点。</p>
              </div>
              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
                <h4 className="text-white font-bold mb-2 flex items-center gap-2">
                  <span className="text-emerald-400">✅ 抄底预警</span>
                </h4>
-               <p className="text-sm text-gray-400">当标的在 4小时级别极度超卖（RSI 跌破 30），且在 1小时级别拒绝创新低并强势从 30 以下反抽突破 40，同时在核心的 15分钟级别被强力向上击穿 RSI 55 边界时触发。该算法旨在过滤下跌途中的“死猫跳”，精准捕捉跌势穷竭后的高胜率反转拐点。</p>
+               <p className="text-sm text-gray-400">15M/4H RSI由30以下超卖区快速反弹（15M&gt;55且伴随放量），精准捕捉跌势穷竭后的高胜率反转拐点。</p>
+             </div>
+             <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+                 <span className="text-blue-400">📈 4H RSI 急涨与金叉</span>
+               </h4>
+               <p className="text-sm text-gray-400">包含 4H RSI 单根K线急涨超 10 点，以及 1H RSI 向上穿透 4H RSI 等策略模块，体现大机构的底层资金介入意图。</p>
+             </div>
+             <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+               <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+                 <span className="text-rose-400">⚠️ 风险滞涨与死叉</span>
+               </h4>
+               <p className="text-sm text-gray-400">包含 高位天量滞涨（长上影线/十字星）以及均线死叉，提前通过量价关系警告做多风险，或作为左侧做空的预备参考。</p>
              </div>
           </div>
           <p className="text-xs text-gray-500 font-mono">
-            提示：点击列表中任意预警结果，所有相关联的实时金融图表将会瞬间同步为您展示该币种的微观走势与核心指标。
+            提示：点击列表中任意预警结果，右侧的图表与市场概览面板会自动快速切换为该币种，实现无缝盯盘闭环。您可以点击仪表盘的“问号”图标随时查看所有预警指标的具体统计公式。
           </p>
         </div>
 

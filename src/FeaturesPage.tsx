@@ -28,29 +28,48 @@ export function FeaturesPage({ onEnter }: { onEnter?: () => void }) {
         <h2 className="text-4xl font-black mb-8">核心功能</h2>
         <div className="space-y-12">
           <section>
-            <h3 className="text-2xl font-bold text-white mb-4">实时多空资金监控</h3>
-            <p className="text-gray-400 leading-relaxed">
-              系统原生接入 OKX API，毫秒级获取全市场各大交易对的资金费率（Funding Rate）、持仓量（Open Interest）以及多空比（Long/Short Ratio）。通过数据分析引擎进行聚合计算，帮你在波谲云诡的市场中提前发现资金流向。
+            <h3 className="text-2xl font-bold text-white mb-4">实时多空数据与深度盘口侦测</h3>
+            <p className="text-gray-400 leading-relaxed mb-3">
+              系统原生接入 OKX API，毫秒级获取全市场各大交易对的核心数据，从多个维度帮你在波谲云诡的市场中提前发现资金流向：
             </p>
+            <ul className="list-disc pl-5 text-gray-400 space-y-2">
+              <li><strong className="text-gray-300">资金费率与多空比：</strong>实时透视大户持仓比例与市场做多做空倾向。</li>
+              <li><strong className="text-gray-300">Top 20 盘口动量：</strong>动态展示买卖盘挂单动量对比（红绿条占比），直观反映微观买卖预留压盘。</li>
+              <li><strong className="text-gray-300">未平仓合约与成交额：</strong>追踪资金是在持续流入（增仓）还是流出（减仓），结合价格辨别趋势真伪。</li>
+            </ul>
           </section>
           
           <section>
-            <h3 className="text-2xl font-bold text-white mb-4">双重趋势预警引擎 (起爆与抄底)</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">八大核心异动预警矩阵</h3>
             <p className="text-gray-400 leading-relaxed mb-3">
-              内置专业级技术扫描矩阵，独创的双向预警模型算法能够不间断扫描市场，为您提取高胜率交易机会：
+              内置专业级技术扫描矩阵，算法不间断轮询全市场标的，为您提取多维度的交易机会与警报：
             </p>
-            <h4 className="text-lg font-bold text-yellow-400 mt-4 mb-2">🚀 右侧起爆预警</h4>
-            <ul className="list-disc pl-5 text-gray-400 space-y-2 mb-4">
-              <li><strong className="text-gray-300">大周期动能确认：</strong>自动监测 4小时 RSI 是否刚刚突破 70 建立强多头格局，过滤钝化标的。</li>
-              <li><strong className="text-gray-300">中周期势能传导：</strong>要求 1小时级别连续稳住 60 以上，确保趋势健康。</li>
-              <li><strong className="text-gray-300">微观极速起爆点：</strong>在 15分钟级别精准捕捉 RSI 连涨突破 55 的瞬间，推送极速警报。</li>
-            </ul>
-            <h4 className="text-lg font-bold text-emerald-400 mt-4 mb-2">✅ 左侧抄底预警</h4>
-            <ul className="list-disc pl-5 text-gray-400 space-y-2">
-              <li><strong className="text-gray-300">大周期超卖衰竭：</strong>锁定 4小时级别 RSI 跌破 30 的极度超卖区间。</li>
-              <li><strong className="text-gray-300">中周期拒绝新低：</strong>寻找 1小时级别 RSI 拒绝持续走低，并向上有力反抽 40。</li>
-              <li><strong className="text-gray-300">微观资金抢筹：</strong>结合 15分钟级别 RSI 瞬间强力越过 55，过滤暴跌途中的死猫跳，捕捉高胜率反转。</li>
-            </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-[#00b07c] font-bold mb-2">🚀 多级共振起爆</h4>
+                <p className="text-sm text-gray-400">15M/1H/4H RSI 突破 68 并伴随放量突破均线，极速右侧动能触发。</p>
+              </div>
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-emerald-400 font-bold mb-2">✅ 超卖反弹抄底</h4>
+                <p className="text-sm text-gray-400">大周期超卖跌破 30，短周期发力突破 55，捕捉高胜率底部拐点。</p>
+              </div>
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-blue-400 font-bold mb-2">📈 大级别 RSI 急涨</h4>
+                <p className="text-sm text-gray-400">4H RSI 单根 K 线涨幅超过 10 点，直接反映大资金极速吸筹拉升。</p>
+              </div>
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-blue-400 font-bold mb-2">⚔️ 动能跨周期金叉</h4>
+                <p className="text-sm text-gray-400">1H RSI 上穿 4H RSI 或 15M 级别 EMA20 上穿 EMA50，日内趋势转强。</p>
+              </div>
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-rose-400 font-bold mb-2">⚠️ 高位天量滞涨</h4>
+                <p className="text-sm text-gray-400">处于上升末端爆出天量却未继续上涨（收长上影线/十字星），主力潜在出货。</p>
+              </div>
+              <div className="bg-[#1e2329] p-4 rounded-lg border border-[#2b2f36]">
+                <h4 className="text-blue-400 font-bold mb-2">📍 地量长下影探底</h4>
+                <p className="text-sm text-gray-400">地量缩量状态收长下影线，抛压枯竭买盘承接明显，随时准备反转。</p>
+              </div>
+            </div>
           </section>
 
           <section>

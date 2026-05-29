@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { ChartWidget } from "./ChartWidget";
-import { AbnormalMonitoringPanel } from "./AbnormalMonitoringPanel";
 import { useAppContext } from "../AppContext";
 
 export function ChartGrid() {
@@ -22,7 +21,7 @@ export function ChartGrid() {
         />
       </div>
       <div className="shrink-0 h-[290px] min-h-0 w-full">
-        <AbnormalMonitoringPanel />
+        {/* AbnormalMonitoringPanel removed temporarily */}
       </div>
     </div>
   );

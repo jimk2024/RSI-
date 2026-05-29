@@ -55,6 +55,10 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    
+    // Update last_login_at
+    db.prepare("UPDATE users SET last_login_at = ? WHERE id = ?").run(new Date().toISOString(), user.id);
+    
     res.json({ token, message: "登录成功" });
   } catch (error) {
     console.error("Login error:", error);

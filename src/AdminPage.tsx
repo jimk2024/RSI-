@@ -194,6 +194,7 @@ export function AdminPage() {
                   <tr>
                      <th className="p-4">ID</th>
                      <th className="p-4">账号/邮箱</th>
+                     <th className="p-4">最后登录时间</th>
                      <th className="p-4">授权到期时间</th>
                      <th className="p-4">注册时间</th>
                   </tr>
@@ -203,6 +204,7 @@ export function AdminPage() {
                     <tr key={u.id} className="hover:bg-[#1e2329]/50">
                       <td className="p-4">{u.id}</td>
                       <td className="p-4 text-white font-medium">{u.email}</td>
+                      <td className="p-4 text-gray-500">{u.last_login_at ? new Date(u.last_login_at).toLocaleString() : '从未使用'}</td>
                       <td className="p-4">
                          {u.membership_expiry ? (
                             new Date(u.membership_expiry).getTime() > Date.now() ? 

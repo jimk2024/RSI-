@@ -9,6 +9,7 @@ import { Dashboard } from "./Dashboard";
 import { FeaturesPage } from "./FeaturesPage";
 import { TechnologyPage } from "./TechnologyPage";
 import { DocsPage } from "./DocsPage";
+import { LeaderboardPage } from "./LeaderboardPage";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { AuthModal } from "./AuthModal";
 import { LicensePage } from "./LicensePage";
@@ -76,6 +77,8 @@ function AppContent() {
     content = <TechnologyPage onEnter={handleEnterDashboard} />;
   } else if (currentPath === '#/docs') {
     content = <DocsPage onEnter={handleEnterDashboard} />;
+  } else if (currentPath === '#/leaderboard') {
+    content = <LeaderboardPage onBack={() => window.location.hash = '#/'} />;
   } else {
     content = <LandingPage onEnter={handleEnterDashboard} />;
   }

@@ -24,7 +24,10 @@ const app = express();
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, Content-Length, X-Requested-With",
+  );
   // Intercept OPTIONS method
   if (req.method === "OPTIONS") {
     res.sendStatus(200);
@@ -62,11 +65,11 @@ app.use("/api/sys-control", adminRouter);
 // News Endpoint with Translation & Sentiment
 app.get("/api/news", async (req, res) => {
   try {
-    const coin = (req.query.coin as string || "btc").toLowerCase();
+    const coin = ((req.query.coin as string) || "btc").toLowerCase();
     let url = `https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss/tag/${coin}`;
     let resp = await fetch(url);
     let data = await resp.json();
-    
+
     if (data.status === "error") {
       url = `https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss`;
       resp = await fetch(url);
@@ -79,12 +82,16 @@ app.get("/api/news", async (req, res) => {
 
     const items = data.items.slice(0, 5).map((item: any, i: number) => ({
       id: i.toString() + item.link,
-      source_info: { name: "Cointelegraph", img: "https://cointelegraph.com/favicon.ico" },
+      source_info: {
+        name: "Cointelegraph",
+        img: "https://cointelegraph.com/favicon.ico",
+      },
       title: item.title,
       url: item.link,
       body: item.content,
-      published_on: new Date(item.pubDate.replace(" ", "T") + "Z").getTime() / 1000,
-      sentiment: "Neutral"
+      published_on:
+        new Date(item.pubDate.replace(" ", "T") + "Z").getTime() / 1000,
+      sentiment: "Neutral",
     }));
 
     if (ai) {
@@ -92,24 +99,30 @@ app.get("/api/news", async (req, res) => {
 Return ONLY a valid JSON array of objects with "title_zh" and "sentiment" keys in the exact order provided.
 Here are the headlines:
 ${items.map((it: any) => "- " + it.title).join("\n")}`;
-      
+
       try {
-        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "MY_GEMINI_API_KEY" || !process.env.GEMINI_API_KEY.startsWith("AIza")) {
-           console.warn("Invalid or default GEMINI_API_KEY detected. Skipping translation.");
+        if (
+          !process.env.GEMINI_API_KEY ||
+          process.env.GEMINI_API_KEY === "MY_GEMINI_API_KEY" ||
+          !process.env.GEMINI_API_KEY.startsWith("AIza")
+        ) {
+          console.warn(
+            "Invalid or default GEMINI_API_KEY detected. Skipping translation.",
+          );
         } else {
           const response = await ai.models.generateContent({
-             model: "gemini-2.5-flash",
-             contents: prompt,
-             config: {
-               responseMimeType: "application/json"
-             }
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+            },
           });
           const aiData = JSON.parse(response.text || "[]");
           aiData.forEach((result: any, index: number) => {
-             if (items[index]) {
-               items[index].title = result.title_zh || items[index].title;
-               items[index].sentiment = result.sentiment || "中性";
-             }
+            if (items[index]) {
+              items[index].title = result.title_zh || items[index].title;
+              items[index].sentiment = result.sentiment || "中性";
+            }
           });
         }
       } catch (e: any) {
@@ -128,8 +141,53 @@ ${items.map((it: any) => "- " + it.title).join("\n")}`;
 app.get("/api/opportunities", (req, res) => {
   res.json({
     opportunities: cachedOpportunities,
-    ...scanStatus
+    ...scanStatus,
   });
+});
+
+let cachedLeaderboardData: any = null;
+let lastLeaderboardFetch = 0;
+const LEADERBOARD_CACHE_TTL = 1000 * 60 * 2; // 2 minutes
+
+app.get("/api/hyperliquid/leaderboard", async (req, res) => {
+  try {
+    if (
+      cachedLeaderboardData &&
+      Date.now() - lastLeaderboardFetch < LEADERBOARD_CACHE_TTL
+    ) {
+      return res.json(cachedLeaderboardData);
+    }
+
+    console.log("Fetching new leaderboard data...");
+    const response = await fetch(
+      "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard",
+      {
+        headers: { "User-Agent": "Mozilla/5.0" },
+        signal: AbortSignal.timeout(15000), // 15 seconds timeout
+      },
+    );
+    if (!response.ok) {
+      throw new Error(
+        "Failed to fetch from Hyperliquid: " + response.statusText,
+      );
+    }
+
+    console.log("Parsing leaderboard json...");
+    const data = await response.json();
+
+    // Slice leaderboard down to top 500 max to save memory and payload size
+    if (data && data.leaderboardRows && Array.isArray(data.leaderboardRows)) {
+      data.leaderboardRows = data.leaderboardRows.slice(0, 500);
+    }
+
+    cachedLeaderboardData = data;
+    lastLeaderboardFetch = Date.now();
+
+    res.json(cachedLeaderboardData);
+  } catch (error: any) {
+    console.error("Leaderboard fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard data" });
+  }
 });
 
 async function startServer() {

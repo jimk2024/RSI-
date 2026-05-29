@@ -85,8 +85,8 @@ export function LandingPage({ onEnter }: LandingPageProps) {
              <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-[#a855f7]">
                <BrainCircuit size={24} />
              </div>
-             <h3 className="text-xl font-bold mb-3 tracking-wide">双向趋势预警系统</h3>
-             <p className="text-gray-400 text-sm leading-relaxed">内置高级技术分析矩阵引擎，严格穿透监控 15M / 1H / 4H 级别动能，实时为您捕捉极高确定性的右侧起爆与左侧抄底反转机会。</p>
+             <h3 className="text-xl font-bold mb-3 tracking-wide">全天候异动扫描引擎</h3>
+             <p className="text-gray-400 text-sm leading-relaxed">内置专业级技术扫描矩阵，不仅涵盖多周期 RSI 共振起爆与超卖抄底，还支持 4H RSI 急涨、1H 上穿 4H、量价背离（天量滞涨/地量下影）等八大核心策略实时监控。</p>
           </motion.div>
 
           <motion.div 
@@ -95,12 +95,12 @@ export function LandingPage({ onEnter }: LandingPageProps) {
              transition={{ duration: 0.6, delay: 0.4 }}
              className="bg-[#161a1e] border border-[#2b2f36] p-6 rounded-xl relative group overflow-hidden"
           >
-             <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-             <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-white">
-               <LineChart size={24} />
+             <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+             <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-blue-500">
+               <Activity size={24} />
              </div>
-             <h3 className="text-xl font-bold mb-3 tracking-wide">专业多标签图表</h3>
-             <p className="text-gray-400 text-sm leading-relaxed">完美集成 TradingView 轻量级图表技术，支持多周期十字线完美同步、K线复盘及极速图表交互。</p>
+             <h3 className="text-xl font-bold mb-3 tracking-wide">深度市场情绪侦测</h3>
+             <p className="text-gray-400 text-sm leading-relaxed">穿透常规表象，直击市场底牌：实时追踪资金费率、大户多空持仓比、Top 20 盘口买卖动量差以及未平仓合约（OI）增减，从数据底层读懂主力意图。</p>
           </motion.div>
 
           <motion.div 
@@ -111,10 +111,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
           >
              <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#22c55e]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
              <div className="w-12 h-12 bg-[#1e2329] rounded-lg flex items-center justify-center mb-6 text-[#22c55e]">
-               <Activity size={24} />
+               <Zap size={24} />
              </div>
-             <h3 className="text-xl font-bold mb-3 tracking-wide">实盘数据追踪</h3>
-             <p className="text-gray-400 text-sm leading-relaxed">提供实时的多空持仓比例及资金费率追踪，帮助分析了解当前市场情绪状态。</p>
+             <h3 className="text-xl font-bold mb-3 tracking-wide">智能一体化控制台</h3>
+             <p className="text-gray-400 text-sm leading-relaxed">轻量级极速图表融合快捷下单面板。自适应逐仓/全仓模式设定、自带止盈止损参数计算与仓位面板管理，从发现信号到执行平仓一气呵成。</p>
           </motion.div>
         </div>
       </main>
