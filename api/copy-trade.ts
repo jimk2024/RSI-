@@ -118,10 +118,6 @@ router.post("/", async (req, res) => {
         WHERE user_id = ? AND target_wallet_address = ? AND is_active = 1
     `).get(userId, address);
 
-    if (existing) {
-      return res.status(400).json({ error: "您已经跟单了该交易员，请勿重复跟单。" });
-    }
-
     // Verify OKX Credentials
     try {
       const okx = new ccxt.okx({
@@ -139,12 +135,20 @@ router.post("/", async (req, res) => {
     const encApiSecret = encrypt(apiSecret);
     const encPassphrase = encrypt(passphrase);
 
-    const stmt = db.prepare(`
-        INSERT INTO copy_trades (user_id, target_wallet_address, api_key, api_secret, passphrase, margin_amount, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, 1)
-    `);
-    
-    const info = stmt.run(userId, address, encApiKey, encApiSecret, encPassphrase, marginAmount);
+    if (existing) {
+      const stmt = db.prepare(`
+          UPDATE copy_trades 
+          SET api_key = ?, api_secret = ?, passphrase = ?, margin_amount = ? 
+          WHERE user_id = ? AND target_wallet_address = ? AND is_active = 1
+      `);
+      stmt.run(encApiKey, encApiSecret, encPassphrase, marginAmount, userId, address);
+    } else {
+      const stmt = db.prepare(`
+          INSERT INTO copy_trades (user_id, target_wallet_address, api_key, api_secret, passphrase, margin_amount, is_active)
+          VALUES (?, ?, ?, ?, ?, ?, 1)
+      `);
+      stmt.run(userId, address, encApiKey, encApiSecret, encPassphrase, marginAmount);
+    }
     
     // Perform initial sync inline and collect logs
     const logs: string[] = [];
