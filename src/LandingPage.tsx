@@ -27,6 +27,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         <nav className="hidden md:flex gap-8 text-sm font-medium tracking-wide text-gray-400">
           <a href="#/features" className="hover:text-white transition-colors">核心功能</a>
           <a href="#/technology" className="hover:text-white transition-colors">技术架构</a>
+          <a href="#/leaderboard" className="flex items-center gap-1 hover:text-white transition-colors text-white font-bold drop-shadow-[0_0_8px_rgba(255,108,34,0.5)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6c22] animate-pulse"></span>
+            跟单交易
+          </a>
           <a href="#/docs" className="hover:text-white transition-colors">帮助文档</a>
         </nav>
         <button 

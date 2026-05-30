@@ -514,7 +514,7 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
             返回主页
           </button>
           <h1 className="text-2xl font-bold tracking-wide">
-            Hyperliquid 胜率大逃杀
+            聪明钱包跟单
           </h1>
           <div className="w-24"></div> {/* Balance spacer */}
         </div>
@@ -526,7 +526,7 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
               className={`pb-3 -mb-3 px-1 transition-colors ${activeTab === "top" ? "text-white" : "text-gray-400 hover:text-gray-200"}`}
               onClick={() => setActiveTab("top")}
             >
-              大户排行榜(500)
+              跟单交易(500)
             </button>
             <button
               className={`pb-3 -mb-3 px-1 transition-colors ${activeTab === "favorites" ? "text-white" : "text-gray-400 hover:text-gray-200"}`}
