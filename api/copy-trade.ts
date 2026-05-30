@@ -2,6 +2,8 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 import db from "../database";
 import ccxt from "ccxt";
+import { encrypt, decrypt } from "./crypto";
+import { fetchHyperliquidState, syncOkxPositions } from "./copy-trade-worker";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -132,14 +134,46 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "OKX API 验证失败，请检查您的 Key/Secret/Passphrase 是否开启了读取和交易权限: " + ccxtErr.message });
     }
 
+    // Encrypt API credentials
+    const encApiKey = encrypt(apiKey);
+    const encApiSecret = encrypt(apiSecret);
+    const encPassphrase = encrypt(passphrase);
+
     const stmt = db.prepare(`
         INSERT INTO copy_trades (user_id, target_wallet_address, api_key, api_secret, passphrase, margin_amount, is_active)
         VALUES (?, ?, ?, ?, ?, ?, 1)
     `);
     
-    stmt.run(userId, address, apiKey, apiSecret, passphrase, marginAmount);
+    const info = stmt.run(userId, address, encApiKey, encApiSecret, encPassphrase, marginAmount);
     
-    res.json({ success: true, message: "跟单配置保存成功，系统将开始为您追踪建仓，请确保您的OKX资金账户包含充足保证金。" });
+    // Perform initial sync inline and collect logs
+    const logs: string[] = [];
+    const hlState = await fetchHyperliquidState(address);
+    if (!hlState || !hlState.assetPositions) {
+      logs.push("Warning: Could not fetch initial Hyperliquid state or target has no open positions.");
+    } else {
+      const accountValue = parseFloat(hlState.marginSummary?.accountValue || "1");
+      const positions = hlState.assetPositions.map((p: any) => p.position);
+      const hlPosMap: Record<string, any> = {};
+      for (const p of positions) {
+        hlPosMap[p.coin] = {
+          szi: parseFloat(p.szi),
+          positionValue: parseFloat(p.positionValue),
+          leverage: parseFloat(p.leverage?.value || "1"),
+        };
+      }
+      const tradeObj = {
+         user_id: userId,
+         target_wallet_address: address,
+         api_key: encApiKey,
+         api_secret: encApiSecret,
+         passphrase: encPassphrase,
+         margin_amount: marginAmount,
+      };
+      await syncOkxPositions(tradeObj, hlPosMap, accountValue, (msg) => logs.push(msg));
+    }
+    
+    res.json({ success: true, message: "跟单配置保存成功，初始持仓同步完成。", logs });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

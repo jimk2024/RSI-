@@ -1,12 +1,13 @@
 import ccxt from "ccxt";
 import db from "../database";
+import { decrypt } from "./crypto";
 
 // Keep track of sync state
 const lastKnownPositions: Record<string, Record<string, any>> = {}; // targetAddress -> coin -> posSize
 
 const SLEEP_MS = 10000; // Poll every 10 seconds
 
-async function fetchHyperliquidState(userAddress: string) {
+export async function fetchHyperliquidState(userAddress: string) {
   try {
     const response = await fetch("https://api.hyperliquid.xyz/info", {
       method: "POST",
@@ -70,17 +71,24 @@ async function processAllCopyTrades() {
   }
 }
 
-async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>, accountValue: number) {
+export async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>, accountValue: number, log?: (msg: string) => void) {
+  const tLog = (msg: string) => {
+    console.log(msg);
+    if(log) log(msg);
+  };
   try {
     const okx = new ccxt.okx({
-      apiKey: trade.api_key,
-      secret: trade.api_secret,
-      password: trade.passphrase,
+      apiKey: decrypt(trade.api_key),
+      secret: decrypt(trade.api_secret),
+      password: decrypt(trade.passphrase),
       enableRateLimit: true,
     });
     // Check credentials by loading markets and getting current positions
+    tLog("Connecting to OKX API...");
     await okx.loadMarkets();
+    tLog(`Fetched ${Object.keys(okx.markets).length} OKX markets.`);
     const okxPositionsData = await okx.fetchPositions();
+    tLog(`Found ${okxPositionsData.length} existing OKX positions.`);
     
     const configuredMargin = trade.margin_amount || 1000;
     
@@ -133,23 +141,27 @@ async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>, accou
            contractsToOrder = Math.round(contractsToOrder);
            if (contractsToOrder >= Math.max((market.limits?.amount?.min || 1), 1)) {
               const side = delta > 0 ? "buy" : "sell";
-              console.log(`Copying Target ${trade.target_wallet_address} for user ${trade.user_id}: ${side} ${contractsToOrder} of ${symbol}`);
+              tLog(`Copying Target ${trade.target_wallet_address} for user ${trade.user_id}: ${side} ${contractsToOrder} of ${symbol}`);
               // In production, execute order. We use a try/catch to ensure exceptions don't bubble
               try {
                 try {
                 // Set leverage first to match the leader's leverage
                 await okx.setLeverage(hlPos.leverage, symbol, { mgnMode: "cross" });
-                } catch(levErr) {
-                   console.log("Leverage set error (might be already set):", levErr.message);
+                tLog(`Successfully set leverage to ${hlPos.leverage}x for ${symbol}`);
+                } catch(levErr: any) {
+                   tLog(`Leverage set error for ${symbol} (might be already set): ${levErr?.message}`);
                 }
                 
                 await okx.createOrder(symbol, "market", side, contractsToOrder, undefined, {
                   // OKX specific params for positions
                   tdMode: 'cross'
                 });
-              } catch(e) {
-                console.error(`OKX Error ordering ${symbol}:`, e);
+                tLog(`Successfully ordered ${side} ${contractsToOrder} of ${symbol}`);
+              } catch(e: any) {
+                tLog(`OKX Error ordering ${symbol}: ${e?.message}`);
               }
+           } else {
+             tLog(`Order size for ${symbol} (${contractsToOrder}) is below minimum allowed size (${market.limits?.amount?.min})`);
            }
         }
       }
@@ -160,20 +172,21 @@ async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>, accou
       if (p.contracts && p.contracts > 0) {
          const coinObj = p.symbol.split('/')[0];
          if (!hlPosMap[coinObj] || hlPosMap[coinObj].szi === 0) {
-            console.log(`Closing OKX position on ${p.symbol} for user ${trade.user_id} - Leader exited`);
+            tLog(`Closing OKX position on ${p.symbol} for user ${trade.user_id} - Leader exited`);
             try {
               const side = p.side === 'long' ? 'sell' : 'buy';
               await okx.createOrder(p.symbol, "market", side, p.contracts, undefined, {
                  reduceOnly: true,
                  tdMode: 'cross'
               });
-            } catch(e) {
-              console.error(`OKX close Error on ${p.symbol}:`, e);
+              tLog(`Successfully closed ${p.symbol}`);
+            } catch(e: any) {
+              tLog(`OKX close Error on ${p.symbol}: ${e?.message}`);
             }
          }
       }
     }
-  } catch (error) {
-    console.error(`Failed to sync OKX for user ${trade.user_id}:`, error);
+  } catch (error: any) {
+    tLog(`Failed to sync OKX for user ${trade.user_id}: ${error?.message}`);
   }
 }

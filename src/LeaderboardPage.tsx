@@ -489,8 +489,14 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
           return {
             ...t,
             address: c.address,
-            _marginAmount: c.marginAmount,
-            _nominalValue: c.nominalValue,
+            _marginAmount: c._marginAmount || c.marginAmount,
+            _nominalValue: c._nominalValue || c.nominalValue || 0,
+            aum: c.aum !== undefined ? c.aum : t.aum,
+            totalPnl: c.totalPnl !== undefined ? c.totalPnl : t.totalPnl,
+            roi24h: c.roi24h !== undefined ? c.roi24h : t.roi24h,
+            roi7d: c.roi7d !== undefined ? c.roi7d : t.roi7d,
+            roi30d: c.roi30d !== undefined ? c.roi30d : t.roi30d,
+            assetPositions: c.assetPositions !== undefined ? c.assetPositions : t.assetPositions,
           } as Trader & { _marginAmount: number, _nominalValue: number };
         })
       : sortedTraders;

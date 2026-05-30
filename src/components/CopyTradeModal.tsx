@@ -20,19 +20,24 @@ export function CopyTradeModal({
   const [passphrase, setPassphrase] = useState("");
   const [showSecret, setShowSecret] = useState(false);
   
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
   const [isSubmit, setIsSubmit] = useState(false);
 
   const handleSubmit = async () => {
     setIsSubmit(true);
+    setShowLogs(true);
+    setLogs(["初始化引擎...", "正在校验授权和配置..."]);
     const parsedAmount = parseFloat(amount) || 0;
     const token = localStorage.getItem("token");
     if (!token) {
-       alert("请先登录");
+       setLogs(prev => [...prev, "❌ 请先登录"]);
        setIsSubmit(false);
        return;
     }
 
     try {
+      setLogs(prev => [...prev, "正在加密安全凭证...", `推送启动请求至核心节点, 目标: ${trader.address}`]);
       const res = await fetch("/api/copy-trades", {
         method: "POST",
         headers: {
@@ -50,17 +55,25 @@ export function CopyTradeModal({
 
       if (!res.ok) {
         const err = await res.json();
-        alert("跟单失败：" + (err.error || "未知错误"));
+        setLogs(prev => [...prev, "❌ 跟单失败: " + (err.error || "未知错误")]);
         setIsSubmit(false);
         return;
       }
 
+      const responseData = await res.json();
+      if (responseData.logs && Array.isArray(responseData.logs)) {
+        setLogs(prev => [...prev, ...responseData.logs, "✅ 同步流程完成 (可以关闭本窗口)"]);
+      } else {
+         setLogs(prev => [...prev, "✅ 跟单配置保存成功，开始追踪目标建仓"]);
+      }
+
       const totalNominal = positions.reduce((acc, pos) => acc + (parsedAmount * pos.weight * pos.leverage), 0);
       onSuccess?.(parsedAmount, totalNominal);
-      onClose();
+      // Removed automatic onClose() so user can view logs
+      setIsSubmit(false);
     } catch (e) {
       console.error(e);
-      alert("提交失败，请重试");
+      setLogs(prev => [...prev, "❌ 提交失败，请重试"]);
       setIsSubmit(false);
     }
   };
@@ -155,6 +168,39 @@ export function CopyTradeModal({
           </div>
 
           <div className="flex flex-col md:flex-row relative" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            {showLogs ? (
+              <div className="w-full p-6 bg-[#111419] font-mono text-sm">
+                <div className="flex items-center gap-2 text-gray-400 mb-4 pb-2 border-b border-[#2b2f36]">
+                  <Activity size={16} className="text-[#ff6c22]" />
+                  <span>引擎节点执行日志</span>
+                  {isSubmit && <div className="ml-auto w-4 h-4 border-2 border-t-transparent border-[#ff6c22] rounded-full animate-spin"></div>}
+                </div>
+                <div className="space-y-2 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  {logs.map((log, index) => (
+                    <motion.div 
+                      key={index} 
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      className="text-gray-300 break-all"
+                    >
+                      <span className="text-gray-500 mr-2">[{new Date().toLocaleTimeString()}]</span>
+                      {log}
+                    </motion.div>
+                  ))}
+                  {!isSubmit && logs.length > 0 && (
+                    <div className="pt-4 flex justify-center">
+                      <button
+                        onClick={onClose}
+                        className="px-6 py-2 bg-[#ff6c22] hover:bg-[#ff6c22]/90 text-white rounded font-sans transition-colors"
+                      >
+                        确认并返回
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
             {/* Left: Configuration */}
             <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329]">
               
@@ -350,6 +396,8 @@ export function CopyTradeModal({
               </div>
 
             </div>
+            </>
+            )}
           </div>
         </motion.div>
       </motion.div>
