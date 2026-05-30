@@ -54,13 +54,6 @@ function DashboardContent() {
               </span>
             </div>
           </button>
-          
-          <button
-            onClick={() => (window.location.hash = "#/leaderboard")}
-            className="mt-4 w-full py-2 bg-gradient-to-r from-[#ff6c22] to-orange-500 text-white font-bold rounded shadow-lg hover:shadow-orange-500/20 text-sm tracking-wider hover:opacity-90 transition-all flex items-center justify-center gap-2"
-          >
-            跟单交易 (Copy Trading)
-          </button>
 
           {user && (
             <div className="mt-2 w-full border-t border-[#2b2f36] pt-2 flex flex-col items-center flex-wrap">
