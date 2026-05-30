@@ -23,6 +23,34 @@ export function CopyTradeModal({
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [isSubmit, setIsSubmit] = useState(false);
+  const [isFetchingBalance, setIsFetchingBalance] = useState(false);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!apiKey || !apiSecret || !passphrase) return;
+      setIsFetchingBalance(true);
+      try {
+        const res = await fetch("/api/copy-trades/balance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ apiKey, apiSecret, passphrase })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.balance !== undefined) {
+             setAmount(Math.floor(data.balance).toString());
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch balance", e);
+      } finally {
+         setIsFetchingBalance(false);
+      }
+    };
+
+    const timer = setTimeout(fetchBalance, 1000);
+    return () => clearTimeout(timer);
+  }, [apiKey, apiSecret, passphrase]);
 
   const handleSubmit = async () => {
     setIsSubmit(true);
@@ -272,9 +300,17 @@ export function CopyTradeModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                    总跟单保证金 (USDT)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-medium text-gray-400">
+                      总跟单保证金 (USDT)
+                    </label>
+                    {isFetchingBalance && (
+                      <span className="text-xs text-[#ff6c22] animate-pulse flex items-center gap-1">
+                        <div className="w-3 h-3 border border-[#ff6c22]/30 border-t-[#ff6c22] rounded-full animate-spin"></div>
+                        获取余额中...
+                      </span>
+                    )}
+                  </div>
                   <div className="relative">
                     <input
                       type="number"

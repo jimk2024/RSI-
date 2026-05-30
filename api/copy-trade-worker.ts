@@ -87,6 +87,19 @@ export async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>
     tLog("Connecting to OKX API...");
     await okx.loadMarkets();
     tLog(`Fetched ${Object.keys(okx.markets).length} OKX markets.`);
+    
+    // Check posMode
+    let posMode = "long_short_mode";
+    try {
+       const accConfig = await okx.privateGetAccountConfig();
+       if (accConfig?.data?.[0]?.posMode) {
+          posMode = accConfig.data[0].posMode;
+       }
+       tLog(`OKX Account posMode: ${posMode}`);
+    } catch(e) {
+       tLog(`Could not fetch account config, assuming long_short_mode`);
+    }
+
     const okxPositionsData = await okx.fetchPositions();
     tLog(`Found ${okxPositionsData.length} existing OKX positions.`);
     
@@ -141,21 +154,25 @@ export async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>
            contractsToOrder = Math.round(contractsToOrder);
            if (contractsToOrder >= Math.max((market.limits?.amount?.min || 1), 1)) {
               const side = delta > 0 ? "buy" : "sell";
-              tLog(`Copying Target ${trade.target_wallet_address} for user ${trade.user_id}: ${side} ${contractsToOrder} of ${symbol}`);
+              const targetPosSide = hlPos.szi > 0 ? "long" : "short";
+
+              tLog(`Copying Target ${trade.target_wallet_address} for user ${trade.user_id}: ${side} ${contractsToOrder} of ${symbol} (${posMode === 'long_short_mode' ? targetPosSide : 'net'})`);
               // In production, execute order. We use a try/catch to ensure exceptions don't bubble
               try {
                 try {
                 // Set leverage first to match the leader's leverage
-                await okx.setLeverage(hlPos.leverage, symbol, { mgnMode: "cross" });
+                const levParams: any = { mgnMode: "cross" };
+                if (posMode === "long_short_mode") levParams.posSide = targetPosSide;
+                await okx.setLeverage(hlPos.leverage, symbol, levParams);
                 tLog(`Successfully set leverage to ${hlPos.leverage}x for ${symbol}`);
                 } catch(levErr: any) {
                    tLog(`Leverage set error for ${symbol} (might be already set): ${levErr?.message}`);
                 }
                 
-                await okx.createOrder(symbol, "market", side, contractsToOrder, undefined, {
-                  // OKX specific params for positions
-                  tdMode: 'cross'
-                });
+                const orderParams: any = { tdMode: 'cross' };
+                if (posMode === "long_short_mode") orderParams.posSide = targetPosSide;
+
+                await okx.createOrder(symbol, "market", side, contractsToOrder, undefined, orderParams);
                 tLog(`Successfully ordered ${side} ${contractsToOrder} of ${symbol}`);
               } catch(e: any) {
                 tLog(`OKX Error ordering ${symbol}: ${e?.message}`);
@@ -175,10 +192,14 @@ export async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>
             tLog(`Closing OKX position on ${p.symbol} for user ${trade.user_id} - Leader exited`);
             try {
               const side = p.side === 'long' ? 'sell' : 'buy';
-              await okx.createOrder(p.symbol, "market", side, p.contracts, undefined, {
+              const closeParams: any = {
                  reduceOnly: true,
                  tdMode: 'cross'
-              });
+              };
+              if (posMode === 'long_short_mode') {
+                 closeParams.posSide = p.info?.posSide || p.side;
+              }
+              await okx.createOrder(p.symbol, "market", side, p.contracts, undefined, closeParams);
               tLog(`Successfully closed ${p.symbol}`);
             } catch(e: any) {
               tLog(`OKX close Error on ${p.symbol}: ${e?.message}`);

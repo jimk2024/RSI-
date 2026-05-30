@@ -102,6 +102,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/balance", async (req, res) => {
+  const { apiKey, apiSecret, passphrase } = req.body;
+  if (!apiKey || !apiSecret || !passphrase) {
+     return res.status(400).json({ error: "Missing required credentials" });
+  }
+
+  try {
+     const okx = new ccxt.okx({
+        apiKey,
+        secret: apiSecret,
+        password: passphrase,
+        enableRateLimit: true,
+     });
+     const balance = await okx.fetchBalance();
+     return res.json({ balance: balance?.total?.USDT || 0 });
+  } catch(e: any) {
+     return res.status(400).json({ error: e.message });
+  }
+});
+
 // Create a new copy trade
 router.post("/", async (req, res) => {
   const userId = (req as any).userId;
