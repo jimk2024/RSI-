@@ -154,7 +154,7 @@ export function CopyTradeModal({
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row relative">
+          <div className="flex flex-col md:flex-row relative" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
             {/* Left: Configuration */}
             <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329]">
               
