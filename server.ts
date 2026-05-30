@@ -215,6 +215,8 @@ app.post("/api/hyperliquid/clearinghouseState", async (req, res) => {
   }
 });
 
+import { runCopyTradeWorker } from "./api/copy-trade-worker";
+
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -232,6 +234,9 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Start background worker for copy trading
+    runCopyTradeWorker().catch(e => console.error("Worker failed:", e));
   });
 }
 

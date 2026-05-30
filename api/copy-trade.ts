@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import db from "../database";
+import ccxt from "ccxt";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -39,12 +40,12 @@ router.get("/", (req, res) => {
 });
 
 // Create a new copy trade
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const userId = (req as any).userId;
   const { address, apiKey, apiSecret, passphrase, marginAmount } = req.body;
 
   if (!address || !apiKey || !apiSecret || !passphrase || !marginAmount) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({ error: " Missing required fields" });
   }
 
   try {
@@ -58,6 +59,18 @@ router.post("/", (req, res) => {
       return res.status(400).json({ error: "您已经跟单了该交易员，请勿重复跟单。" });
     }
 
+    // Verify OKX Credentials
+    try {
+      const okx = new ccxt.okx({
+        apiKey,
+        secret: apiSecret,
+        password: passphrase,
+      });
+      await okx.fetchBalance(); // basic call to check
+    } catch(ccxtErr: any) {
+      return res.status(400).json({ error: "OKX API 验证失败，请检查您的 Key/Secret/Passphrase 是否开启了读取和交易权限: " + ccxtErr.message });
+    }
+
     const stmt = db.prepare(`
         INSERT INTO copy_trades (user_id, target_wallet_address, api_key, api_secret, passphrase, margin_amount, is_active)
         VALUES (?, ?, ?, ?, ?, ?, 1)
@@ -65,7 +78,7 @@ router.post("/", (req, res) => {
     
     stmt.run(userId, address, apiKey, apiSecret, passphrase, marginAmount);
     
-    res.json({ success: true, message: "跟单配置保存成功，系统将开始为您追踪建仓" });
+    res.json({ success: true, message: "跟单配置保存成功，系统将开始为您追踪建仓，请确保您的OKX资金账户包含充足保证金。" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

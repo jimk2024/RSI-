@@ -318,7 +318,7 @@ export function TraderReviewModal({
                   <span className="text-xl font-bold text-white mb-1">
                     {formatCurrency((trader as any)._nominalValue || 0)}
                   </span>
-                  <span className="text-xs text-gray-500">预估敞口</span>
+                  <span className="text-xs text-gray-500">跟踪敞口</span>
                 </div>
                 <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
                   <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
@@ -330,7 +330,7 @@ export function TraderReviewModal({
                     {trader.totalPnl >= 0 ? "+" : ""}
                     {formatCurrency(trader.totalPnl)}
                   </span>
-                  <span className="text-xs text-gray-500">模拟收益</span>
+                  <span className="text-xs text-gray-500">实时收益</span>
                 </div>
                 <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
                   <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
