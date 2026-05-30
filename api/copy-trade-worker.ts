@@ -129,14 +129,19 @@ async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>, accou
         const price = ticker.last;
         
         if (price) {
-           const contractsToOrder = Math.abs(delta) / ticker.last! / contractSize;
-           if (contractsToOrder >= (market.limits?.amount?.min || 0)) {
+           let contractsToOrder = Math.abs(delta) / ticker.last! / contractSize;
+           contractsToOrder = Math.round(contractsToOrder);
+           if (contractsToOrder >= Math.max((market.limits?.amount?.min || 1), 1)) {
               const side = delta > 0 ? "buy" : "sell";
               console.log(`Copying Target ${trade.target_wallet_address} for user ${trade.user_id}: ${side} ${contractsToOrder} of ${symbol}`);
               // In production, execute order. We use a try/catch to ensure exceptions don't bubble
               try {
+                try {
                 // Set leverage first to match the leader's leverage
-                await okx.setLeverage(hlPos.leverage, symbol);
+                await okx.setLeverage(hlPos.leverage, symbol, { mgnMode: "cross" });
+                } catch(levErr) {
+                   console.log("Leverage set error (might be already set):", levErr.message);
+                }
                 
                 await okx.createOrder(symbol, "market", side, contractsToOrder, undefined, {
                   // OKX specific params for positions

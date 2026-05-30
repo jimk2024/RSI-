@@ -24,16 +24,77 @@ router.use((req, res, next) => {
 });
 
 // Get all active copy trades for the user
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const userId = (req as any).userId;
   try {
     const stmt = db.prepare(`
-      SELECT id, target_wallet_address as address, margin_amount as marginAmount, is_active, created_at 
+      SELECT id, target_wallet_address as address, api_key, api_secret, passphrase, margin_amount as marginAmount, is_active, created_at 
       FROM copy_trades 
       WHERE user_id = ? AND is_active = 1
     `);
-    const trades = stmt.all(userId);
-    res.json(trades);
+    const trades = stmt.all(userId) as any[];
+
+    const result = await Promise.all(trades.map(async (t) => {
+      let aum = t.marginAmount;
+      let totalPnl = 0;
+      let assetPositions: any[] = [];
+      let roi = 0;
+      
+      try {
+        const okx = new ccxt.okx({
+          apiKey: t.api_key,
+          secret: t.api_secret,
+          password: t.passphrase,
+          enableRateLimit: true,
+        });
+
+        const [balance, positions] = await Promise.all([
+          okx.fetchBalance(),
+          okx.fetchPositions()
+        ]);
+
+        aum = balance?.total?.USDT || t.marginAmount;
+        totalPnl = (balance?.info?.data?.[0]?.upl || 0) * 1; // Unrealized PNL
+
+        let nominalVal = 0;
+        assetPositions = positions.map((p: any) => {
+            const size = p.side === 'long' ? p.contracts : -p.contracts;
+            const notional = parseFloat(p.notional || p.info?.notionalUsd || '0');
+            nominalVal += notional;
+            return {
+                position: {
+                    coin: p.symbol.split('/')[0],
+                    szi: size,
+                    marginUsed: p.initialMargin || 0,
+                    leverage: { value: p.leverage || 1 },
+                    entryPx: p.entryPrice || 0,
+                    positionValue: notional,
+                    unrealizedPnl: p.unrealizedPnl || p.info?.upl || 0,
+                    returnOnEquity: ((p.unrealizedPnl || 0) / (p.initialMargin || 1)) * 100,
+                    liquidationPx: p.liquidationPrice || 0,
+                }
+            };
+        });
+
+      } catch(e) {
+         console.error(`Error fetching OKX status for trade ${t.id}`, e);
+      }
+
+      return {
+        address: t.address,
+        marginAmount: t.marginAmount,
+        _marginAmount: t.marginAmount,
+        _nominalValue: isNaN(nominalVal) ? 0 : nominalVal,
+        aum: aum,
+        totalPnl: totalPnl,
+        assetPositions: assetPositions,
+        roi30d: totalPnl / t.marginAmount,
+        roi7d: totalPnl / t.marginAmount,
+        roi24h: totalPnl / t.marginAmount,
+      };
+    }));
+
+    res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

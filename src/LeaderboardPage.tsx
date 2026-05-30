@@ -231,12 +231,8 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
         });
         if (res.ok) {
           const data = await res.json();
-          // Map backend format to CopiedTraderData format
-          setCopiedData(data.map((c: any) => ({
-            address: c.address,
-            marginAmount: c.marginAmount,
-            nominalValue: c.marginAmount * 1 // Rough estimate or update backend to save nominal
-          })));
+          // Full OKX data returned from API
+          setCopiedData(data);
         }
       } catch (e) {
         console.error("Failed to load copied traders", e);
@@ -929,11 +925,7 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
                 });
                 if (res.ok) {
                   const data = await res.json();
-                  setCopiedData(data.map((c: any) => ({
-                    address: c.address,
-                    marginAmount: c.marginAmount,
-                    nominalValue: c.marginAmount * 1 // Rough estimate
-                  })));
+                  setCopiedData(data);
                 }
               } catch (e) {
                 console.error(e);
