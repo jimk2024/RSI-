@@ -260,7 +260,7 @@ export function CopyTradeModal({
             </div>
 
             {/* Right: Simulation preview */}
-            <div className="w-full md:w-1/2 p-6 flex flex-col bg-[#161a1e]">
+            <div className="w-full md:w-1/2 p-6 flex flex-col min-h-0 overflow-hidden bg-[#161a1e]">
               <div className="mb-4 flex-shrink-0">
                 <h4 className="text-white font-medium text-sm">建仓结构预览</h4>
                 <p className="text-xs text-gray-500 mt-1">
