@@ -129,10 +129,10 @@ export function CopyTradeModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl"
+          className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#1e2329] border border-[#2b2f36] rounded-xl shadow-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-[#2b2f36] bg-[#161a1e] flex-shrink-0">
+          <div className="flex items-center justify-between p-5 border-b border-[#2b2f36] bg-[#161a1e] sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6c22] to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 {trader.address.charAt(2)}
@@ -154,9 +154,9 @@ export function CopyTradeModal({
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0">
+          <div className="flex flex-col md:flex-row relative">
             {/* Left: Configuration */}
-            <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329] overflow-y-auto">
+            <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329]">
               
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-white font-medium pb-2 border-b border-[#2b2f36]">
@@ -260,7 +260,7 @@ export function CopyTradeModal({
             </div>
 
             {/* Right: Simulation preview */}
-            <div className="w-full md:w-1/2 p-6 flex flex-col min-h-0 overflow-hidden bg-[#161a1e]">
+            <div className="w-full md:w-1/2 md:absolute md:right-0 md:top-0 md:bottom-0 p-6 flex flex-col bg-[#161a1e]">
               <div className="mb-4 flex-shrink-0">
                 <h4 className="text-white font-medium text-sm">建仓结构预览</h4>
                 <p className="text-xs text-gray-500 mt-1">
