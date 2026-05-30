@@ -800,7 +800,7 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
                           <td
                             className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.totalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
                           >
-                            {formatCurrency(trader.totalPnl).replace("$", "+$")}
+                            {trader.totalPnl > 0 ? formatCurrency(trader.totalPnl).replace("$", "+$") : formatCurrency(trader.totalPnl)}
                           </td>
                         </>
                       ) : (
@@ -818,9 +818,9 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
                             {trader.maxDd}%
                           </td>
                           <td
-                            className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "text-[#22c55e]"}`}
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : trader.totalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
                           >
-                            {formatCurrency(trader.totalPnl).replace("$", "+$")}
+                            {trader.totalPnl > 0 ? formatCurrency(trader.totalPnl).replace("$", "+$") : formatCurrency(trader.totalPnl)}
                           </td>
                           <td
                             className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : trader.roi7d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
