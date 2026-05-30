@@ -40,7 +40,7 @@ function AppContent() {
 
   // Routing guards
   useEffect(() => {
-    if (currentPath === '#/dashboard') {
+    if (currentPath === '#/dashboard' || currentPath === '#/leaderboard') {
         if (!loading && !user) {
             window.location.hash = '#/';
             setShowAuthModal(true);
@@ -57,7 +57,7 @@ function AppContent() {
     }
   }, [currentPath, user, loading]);
 
-  if (loading && (currentPath === '#/dashboard' || currentPath === '#/license')) {
+  if (loading && (currentPath === '#/dashboard' || currentPath === '#/leaderboard' || currentPath === '#/license')) {
     return <div className="min-h-screen bg-[#0b0e11] flex flex-col items-center justify-center text-gray-400 font-mono text-sm gap-4">
       <div className="w-8 h-8 rounded-full border-t-2 border-r-2 border-white animate-spin"></div>
       联机状态检查中...
@@ -77,7 +77,7 @@ function AppContent() {
     content = <TechnologyPage onEnter={handleEnterDashboard} />;
   } else if (currentPath === '#/docs') {
     content = <DocsPage onEnter={handleEnterDashboard} />;
-  } else if (currentPath === '#/leaderboard') {
+  } else if (currentPath === '#/leaderboard' && user && !user.isExpired) {
     content = <LeaderboardPage onBack={() => window.location.hash = '#/'} />;
   } else {
     content = <LandingPage onEnter={handleEnterDashboard} />;

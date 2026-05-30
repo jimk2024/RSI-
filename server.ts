@@ -7,6 +7,7 @@ import publicHandler from "./api/okx/public";
 import licenseRouter from "./api/license";
 import authRouter from "./api/auth";
 import adminRouter from "./api/admin";
+import copyTradeRouter from "./api/copy-trade";
 import { GoogleGenAI } from "@google/genai";
 
 // No backend opportunity scanning loop: moved to client-side to save server bandwidth and CPU
@@ -57,10 +58,11 @@ app.post("/api/okx/proxy", proxyHandler as any);
 // REST Proxy for public OKX endpoints (market data)
 app.post("/api/okx/public", publicHandler as any);
 
-// Auth, License and Admin endpoints
+// Auth, License, Admin and Copy Trades endpoints
 app.use("/api/auth", authRouter);
 app.use("/api/license", licenseRouter);
 app.use("/api/sys-control", adminRouter);
+app.use("/api/copy-trades", copyTradeRouter);
 
 // News Endpoint with Translation & Sentiment
 app.get("/api/news", async (req, res) => {
@@ -163,7 +165,7 @@ app.get("/api/hyperliquid/leaderboard", async (req, res) => {
       "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard",
       {
         headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(15000), // 15 seconds timeout
+        signal: AbortSignal.timeout(60000), // 60 seconds timeout
       },
     );
     if (!response.ok) {
@@ -187,6 +189,29 @@ app.get("/api/hyperliquid/leaderboard", async (req, res) => {
   } catch (error: any) {
     console.error("Leaderboard fetch error:", error);
     res.status(500).json({ error: "Failed to fetch leaderboard data" });
+  }
+});
+
+app.post("/api/hyperliquid/clearinghouseState", async (req, res) => {
+  try {
+    const { user } = req.body;
+    if (!user) return res.status(400).json({ error: "Missing user address" });
+    
+    const response = await fetch("https://api.hyperliquid.xyz/info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "clearinghouseState", user }),
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch user state: " + response.statusText);
+    }
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error("Clearinghouse fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch user state" });
   }
 });
 

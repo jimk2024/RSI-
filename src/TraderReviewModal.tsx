@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Copy, Share2 } from "lucide-react";
+import { X, Copy, Share2, AlertTriangle } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -27,6 +27,9 @@ interface TraderReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   trader: Trader | null;
+  onToggleFavorite?: (address: string) => void;
+  isCopyDetail?: boolean;
+  onStopCopy?: (address: string) => void;
 }
 
 const formatCurrency = (num: number) => {
@@ -63,6 +66,9 @@ export function TraderReviewModal({
   isOpen,
   onClose,
   trader,
+  onToggleFavorite,
+  isCopyDetail,
+  onStopCopy
 }: TraderReviewModalProps) {
   const [activeTab, setActiveTab] = useState("PnL"); // "PnL" or "Account"
   const [activeTimeframe, setActiveTimeframe] = useState("allTime"); // "day", "week", "month", "allTime"
@@ -70,6 +76,8 @@ export function TraderReviewModal({
   const [loadingPositions, setLoadingPositions] = useState(false);
   const [portfolioData, setPortfolioData] = useState<any>(null);
   const [currentAUM, setCurrentAUM] = useState<number>(0);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !trader?.fullAddress) {
@@ -292,59 +300,120 @@ export function TraderReviewModal({
         <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex flex-col justify-center">
-              <span className="text-red-400 text-xs font-bold tracking-wider uppercase mb-1">
-                总资产 (AUM)
-              </span>
-              <span className="text-xl font-bold text-white mb-1">
-                {formatCurrency(currentAUM || trader.aum)}
-              </span>
-              <span className="text-xs text-gray-500">管理资产</span>
-            </div>
-            <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
-              <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
-                交易量
-              </span>
-              <span className="text-xl font-bold text-white mb-1">
-                {formatCurrency(currentVlm)}
-              </span>
-              <span className="text-xs text-gray-500">历史名义金额</span>
-            </div>
-            <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
-              <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
-                总盈亏 (PnL)
-              </span>
-              <span
-                className={`text-xl font-bold mb-1 ${currentTotalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
-              >
-                {currentTotalPnl >= 0 ? "+" : ""}
-                {formatCurrency(currentTotalPnl)}
-              </span>
-              <span className="text-xs text-gray-500">已实现 + 未实现</span>
-            </div>
-            <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
-              <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
-                未实现盈亏
-              </span>
-              <span
-                className={`text-xl font-bold mb-1 ${totalUnrealizedPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
-              >
-                {formattedUnrealizedPnl}
-              </span>
-              <span className="text-xs text-gray-500">敞口仓位</span>
-            </div>
-            <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
-              <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
-                收益率 (ROI)
-              </span>
-              <span
-                className={`text-xl font-bold mb-1 ${(trader.roi30d || 0) >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
-              >
-                {(trader.roi30d || 0) >= 0 ? "+" : ""}
-                {(trader.roi30d || 0).toFixed(2)}%
-              </span>
-              <span className="text-xs text-gray-500">30日回报</span>
-            </div>
+            {isCopyDetail ? (
+              <>
+                <div className="bg-[#ff6c22]/10 border border-[#ff6c22]/30 p-4 rounded-xl flex flex-col justify-center">
+                  <span className="text-[#ff6c22] text-xs font-bold tracking-wider uppercase mb-1">
+                    跟单保证金
+                  </span>
+                  <span className="text-xl font-bold text-white mb-1">
+                    {formatCurrency((trader as any)._marginAmount || 0)}
+                  </span>
+                  <span className="text-xs text-gray-500">锁定本金</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    名义价值
+                  </span>
+                  <span className="text-xl font-bold text-white mb-1">
+                    {formatCurrency((trader as any)._nominalValue || 0)}
+                  </span>
+                  <span className="text-xs text-gray-500">预估敞口</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    总盈亏 (PnL)
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${trader.totalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {trader.totalPnl >= 0 ? "+" : ""}
+                    {formatCurrency(trader.totalPnl)}
+                  </span>
+                  <span className="text-xs text-gray-500">模拟收益</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    24H 收益率
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${((trader as any).roi24h || 0) >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {((trader as any).roi24h || 0) >= 0 ? "+" : ""}
+                    {((trader as any).roi24h || 0).toFixed(2)}%
+                  </span>
+                  <span className="text-xs text-gray-500">近期表现</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    收益率 (ROI)
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${(trader.roi30d || 0) >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {(trader.roi30d || 0) >= 0 ? "+" : ""}
+                    {(trader.roi30d || 0).toFixed(2)}%
+                  </span>
+                  <span className="text-xs text-gray-500">30日回报</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex flex-col justify-center">
+                  <span className="text-red-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    总资产 (AUM)
+                  </span>
+                  <span className="text-xl font-bold text-white mb-1">
+                    {formatCurrency(currentAUM || trader.aum)}
+                  </span>
+                  <span className="text-xs text-gray-500">管理资产</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    交易量
+                  </span>
+                  <span className="text-xl font-bold text-white mb-1">
+                    {formatCurrency(currentVlm)}
+                  </span>
+                  <span className="text-xs text-gray-500">历史名义金额</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    总盈亏 (PnL)
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${currentTotalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {currentTotalPnl >= 0 ? "+" : ""}
+                    {formatCurrency(currentTotalPnl)}
+                  </span>
+                  <span className="text-xs text-gray-500">已实现 + 未实现</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    未实现盈亏
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${totalUnrealizedPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {formattedUnrealizedPnl}
+                  </span>
+                  <span className="text-xs text-gray-500">敞口仓位</span>
+                </div>
+                <div className="p-4 rounded-xl border border-[#2b2f36] flex flex-col justify-center">
+                  <span className="text-gray-400 text-xs font-bold tracking-wider uppercase mb-1">
+                    收益率 (ROI)
+                  </span>
+                  <span
+                    className={`text-xl font-bold mb-1 ${(trader.roi30d || 0) >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                  >
+                    {(trader.roi30d || 0) >= 0 ? "+" : ""}
+                    {(trader.roi30d || 0).toFixed(2)}%
+                  </span>
+                  <span className="text-xs text-gray-500">30日回报</span>
+                </div>
+              </>
+            )}
           </div>
           {/* Chart Controls */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 space-y-4 md:space-y-0">
@@ -562,9 +631,68 @@ export function TraderReviewModal({
 
         {/* Footer */}
         <div className="p-4 border-t border-[#2b2f36] flex justify-end bg-[#111419]">
-          <button className="text-sm font-medium bg-[#ff6c22] text-white px-8 py-2 rounded-lg hover:bg-[#e85b17] transition-colors">
-            跟单
-          </button>
+          {isCopyDetail ? (
+            showStopConfirm ? (
+              <div className="flex items-center space-x-3 w-full justify-between bg-red-500/10 p-3 rounded-lg border border-red-500/30">
+                <div className="flex items-center space-x-2 text-red-500 text-sm">
+                  <AlertTriangle size={16} />
+                  <span>确定要退出跟单吗？系统将自动为您市价平掉所有跟随仓位。</span>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setShowStopConfirm(false)}
+                    disabled={isStopping}
+                    className="text-sm font-medium px-4 py-1.5 rounded-lg border border-[#2b2f36] text-gray-300 hover:bg-[#2b2f36] transition-colors disabled:opacity-50"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsStopping(true);
+                      setTimeout(() => {
+                        if (trader && onStopCopy) {
+                          onStopCopy(trader.address);
+                        }
+                        setIsStopping(false);
+                        setShowStopConfirm(false);
+                        onClose();
+                      }, 1500);
+                    }}
+                    disabled={isStopping}
+                    className="text-sm font-medium px-4 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center justify-center min-w-[80px]"
+                  >
+                    {isStopping ? (
+                      <div className="w-4 h-4 border-2 border-t-white border-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      "确认退出"
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowStopConfirm(true)}
+                className="text-sm font-medium px-8 py-2 rounded-lg border border-red-500/50 text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                退出跟单
+              </button>
+            )
+          ) : (
+            <button
+              onClick={() => {
+                if (trader && onToggleFavorite) {
+                  onToggleFavorite(trader.address);
+                }
+              }}
+              className={`text-sm font-medium px-8 py-2 rounded-lg transition-colors ${
+                trader?.isFavorite
+                  ? "border border-[#2b2f36] text-gray-300 hover:bg-[#2b2f36] hover:text-white"
+                  : "bg-[#ff6c22] text-white hover:bg-[#e85b17]"
+              }`}
+            >
+              {trader?.isFavorite ? "取消关注" : "关注"}
+            </button>
+          )}
         </div>
       </div>
     </div>

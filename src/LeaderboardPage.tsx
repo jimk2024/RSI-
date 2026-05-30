@@ -17,6 +17,7 @@ export interface Trader {
   profitFactor: number;
   maxDd: number;
   totalPnl: number;
+  roi24h: number;
   roi7d: number;
   roi30d: number;
   isFavorite: boolean;
@@ -32,6 +33,7 @@ const mockData: Trader[] = [
     profitFactor: 3.43,
     maxDd: 51.9,
     totalPnl: 6941052,
+    roi24h: 3.2,
     roi7d: 13.51,
     roi30d: 52.46,
     isFavorite: false,
@@ -44,6 +46,7 @@ const mockData: Trader[] = [
     profitFactor: 4.17,
     maxDd: 28.0,
     totalPnl: 6074638,
+    roi24h: 1.5,
     roi7d: 10.11,
     roi30d: 180.77,
     isFavorite: false,
@@ -56,6 +59,7 @@ const mockData: Trader[] = [
     profitFactor: 8.69,
     maxDd: 5.4,
     totalPnl: 3471002,
+    roi24h: 0.8,
     roi7d: 10.73,
     roi30d: 21.26,
     isFavorite: false,
@@ -68,6 +72,7 @@ const mockData: Trader[] = [
     profitFactor: 100.0,
     maxDd: 50.6,
     totalPnl: 1860885,
+    roi24h: -1.2,
     roi7d: -4.14,
     roi30d: 55.5,
     isFavorite: false,
@@ -80,6 +85,7 @@ const mockData: Trader[] = [
     profitFactor: 2.62,
     maxDd: 11.9,
     totalPnl: 1734914,
+    roi24h: 2.4,
     roi7d: 12.42,
     roi30d: 17.6,
     isFavorite: false,
@@ -92,6 +98,7 @@ const mockData: Trader[] = [
     profitFactor: 19.01,
     maxDd: 39.2,
     totalPnl: 1490702,
+    roi24h: 5.6,
     roi7d: 34.62,
     roi30d: 90.4,
     isFavorite: false,
@@ -104,6 +111,7 @@ const mockData: Trader[] = [
     profitFactor: 1.63,
     maxDd: 16.4,
     totalPnl: 1061867,
+    roi24h: 1.1,
     roi7d: 6.5,
     roi30d: 24.61,
     isFavorite: false,
@@ -116,6 +124,7 @@ const mockData: Trader[] = [
     profitFactor: 2.15,
     maxDd: 37.1,
     totalPnl: 1006160,
+    roi24h: -3.4,
     roi7d: 55.1,
     roi30d: 75.49,
     isFavorite: false,
@@ -128,6 +137,7 @@ const mockData: Trader[] = [
     profitFactor: 2.52,
     maxDd: 2.5,
     totalPnl: 974124,
+    roi24h: 3.1,
     roi7d: 11.56,
     roi30d: 44.39,
     isFavorite: false,
@@ -140,6 +150,7 @@ const mockData: Trader[] = [
     profitFactor: 100.0,
     maxDd: 15.1,
     totalPnl: 711849,
+    roi24h: 4.2,
     roi7d: 23.05,
     roi30d: 83.87,
     isFavorite: false,
@@ -152,6 +163,7 @@ const mockData: Trader[] = [
     profitFactor: 8.26,
     maxDd: 52.9,
     totalPnl: 691203,
+    roi24h: 1.8,
     roi7d: 16.93,
     roi30d: 91.4,
     isFavorite: false,
@@ -180,7 +192,14 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
   const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [copyTrader, setCopyTrader] = useState<Trader | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const [activeTab, setActiveTab] = useState<"top" | "favorites">("top");
+  const [activeTab, setActiveTab] = useState<"top" | "favorites" | "copies">("top");
+  
+  interface CopiedTraderData {
+    address: string;
+    marginAmount: number;
+    nominalValue: number;
+  }
+  const [copiedData, setCopiedData] = useState<CopiedTraderData[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("favoriteTraders");
@@ -198,6 +217,32 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
         console.error("Failed to load favorites", e);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    async function fetchCopyTrades() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch("/api/copy-trades", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Map backend format to CopiedTraderData format
+          setCopiedData(data.map((c: any) => ({
+            address: c.address,
+            marginAmount: c.marginAmount,
+            nominalValue: c.marginAmount * 1 // Rough estimate or update backend to save nominal
+          })));
+        }
+      } catch (e) {
+        console.error("Failed to load copied traders", e);
+      }
+    }
+    fetchCopyTrades();
   }, []);
 
   type SortField =
@@ -298,11 +343,13 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
               ".." +
               address.substring(address.length - 4);
             let allTimePnl = 0;
+            let dayRoi = 0;
             let weekRoi = 0;
             let monthRoi = 0;
             row.windowPerformances?.forEach((perf: any) => {
               const [window, data] = perf;
               if (window === "allTime") allTimePnl = parseFloat(data.pnl || 0);
+              if (window === "day") dayRoi = parseFloat(data.roi || 0) * 100;
               if (window === "week") weekRoi = parseFloat(data.roi || 0) * 100;
               if (window === "month")
                 monthRoi = parseFloat(data.roi || 0) * 100;
@@ -322,6 +369,7 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
               profitFactor: (Math.random() * 5 + 1).toFixed(2),
               maxDd: (Math.random() * 40).toFixed(1),
               totalPnl: allTimePnl,
+              roi24h: dayRoi,
               roi7d: weekRoi,
               roi30d: monthRoi,
               isFavorite: false,
@@ -426,6 +474,29 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
   const filteredTraders =
     activeTab === "favorites"
       ? sortedTraders.filter((t) => t.isFavorite)
+      : activeTab === "copies"
+      ? copiedData.map(c => {
+          const t = sortedTraders.find(t => t.address === c.address || t.fullAddress === c.address) || traders.find(t => t.address === c.address || t.fullAddress === c.address) || {
+            address: c.address,
+            fullAddress: c.address,
+            badge: "未知",
+            aum: 0,
+            sharpe: 0,
+            profitFactor: 0,
+            maxDd: 0,
+            totalPnl: 0,
+            roi24h: 0,
+            roi7d: 0,
+            roi30d: 0,
+            isFavorite: false,
+          };
+          return {
+            ...t,
+            address: c.address,
+            _marginAmount: c.marginAmount,
+            _nominalValue: c.nominalValue,
+          } as Trader & { _marginAmount: number, _nominalValue: number };
+        })
       : sortedTraders;
 
   const favoritesCount = traders.filter((t) => t.isFavorite).length;
@@ -463,6 +534,12 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
             >
               我的关注({favoritesCount})
             </button>
+            <button
+              className={`pb-3 -mb-3 px-1 transition-colors ${activeTab === "copies" ? "text-white" : "text-gray-400 hover:text-gray-200"}`}
+              onClick={() => setActiveTab("copies")}
+            >
+              我的跟单({copiedData.length})
+            </button>
           </div>
 
           <div className="flex items-center space-x-3 text-sm shrink-0">
@@ -496,90 +573,115 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
                   <th className="py-4 px-4 font-medium whitespace-nowrap">
                     钱包地址
                   </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("aum")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>总资产 (AUM)</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "aum" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("sharpe")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>夏普比率</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "sharpe" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("profitFactor")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>盈利因子</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "profitFactor" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("maxDd")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>最大回撤</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "maxDd" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("totalPnl")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>总盈亏 (PnL)</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "totalPnl" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("roi7d")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>7日收益率</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "roi7d" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
-                    onClick={() => handleSort("roi30d")}
-                  >
-                    <div className="flex items-center justify-center space-x-1">
-                      <span>30日收益率</span>
-                      <ArrowUpDown
-                        size={12}
-                        className={`opacity-0 group-hover:opacity-100 ${sortField === "roi30d" ? "opacity-100 text-[#ff6c22]" : ""}`}
-                      />
-                    </div>
-                  </th>
+                  {activeTab === "copies" ? (
+                    <>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        保证金金额
+                      </th>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        名义价值
+                      </th>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        24H收益率
+                      </th>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        7日收益率
+                      </th>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        30日收益率
+                      </th>
+                      <th className="py-4 px-2 font-medium text-center whitespace-nowrap">
+                        总盈亏 (PnL)
+                      </th>
+                    </>
+                  ) : (
+                    <>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("aum")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>总资产 (AUM)</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "aum" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("sharpe")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>夏普比率</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "sharpe" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("profitFactor")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>盈利因子</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "profitFactor" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("maxDd")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>最大回撤</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "maxDd" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("totalPnl")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>总盈亏 (PnL)</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "totalPnl" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("roi7d")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>7日收益率</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "roi7d" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                      <th
+                        className="py-4 px-2 font-medium text-center whitespace-nowrap cursor-pointer hover:text-white transition-colors group"
+                        onClick={() => handleSort("roi30d")}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>30日收益率</span>
+                          <ArrowUpDown
+                            size={12}
+                            className={`opacity-0 group-hover:opacity-100 ${sortField === "roi30d" ? "opacity-100 text-[#ff6c22]" : ""}`}
+                          />
+                        </div>
+                      </th>
+                    </>
+                  )}
                   <th className="py-4 px-4 font-medium text-right whitespace-nowrap">
                     操作
                   </th>
@@ -672,47 +774,82 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-2 text-center font-mono text-sm font-medium text-white">
-                        {formatCurrency(trader.aum)}
-                      </td>
-                      <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
-                        {trader.sharpe}
-                      </td>
-                      <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
-                        {trader.profitFactor}
-                      </td>
-                      <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
-                        {trader.maxDd}%
-                      </td>
-                      <td
-                        className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "text-[#22c55e]"}`}
-                      >
-                        {formatCurrency(trader.totalPnl).replace("$", "+$")}
-                      </td>
-                      <td
-                        className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : trader.roi7d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
-                      >
-                        {formatPercent(trader.roi7d)}
-                      </td>
-                      <td
-                        className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.roi30d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
-                      >
-                        {formatPercent(trader.roi30d)}
-                      </td>
+                      {activeTab === "copies" ? (
+                        <>
+                          <td className="py-4 px-2 text-center font-mono text-sm font-medium text-white">
+                            {formatCurrency((trader as any)._marginAmount || 0)}
+                          </td>
+                          <td className="py-4 px-2 text-center font-mono text-sm font-medium text-white">
+                            {formatCurrency((trader as any)._nominalValue || 0)}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.roi24h >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatPercent(trader.roi24h || 0)}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.roi7d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatPercent(trader.roi7d || 0)}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.roi30d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatPercent(trader.roi30d || 0)}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.totalPnl >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatCurrency(trader.totalPnl).replace("$", "+$")}
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="py-4 px-2 text-center font-mono text-sm font-medium text-white">
+                            {formatCurrency(trader.aum)}
+                          </td>
+                          <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
+                            {trader.sharpe}
+                          </td>
+                          <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
+                            {trader.profitFactor}
+                          </td>
+                          <td className="py-4 px-2 text-center font-mono text-sm text-gray-300">
+                            {trader.maxDd}%
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : "text-[#22c55e]"}`}
+                          >
+                            {formatCurrency(trader.totalPnl).replace("$", "+$")}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium transition-colors duration-300 ${trader._flash === "up" ? "text-green-300 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : trader._flash === "down" ? "text-red-300 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" : trader.roi7d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatPercent(trader.roi7d)}
+                          </td>
+                          <td
+                            className={`py-4 px-2 text-center font-mono text-sm font-medium ${trader.roi30d >= 0 ? "text-[#22c55e]" : "text-red-500"}`}
+                          >
+                            {formatPercent(trader.roi30d)}
+                          </td>
+                        </>
+                      )}
                       <td className="py-4 px-4">
                         <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2">
                           <button
                             onClick={() => setSelectedTrader(trader)}
                             className="text-sm font-medium border border-[#2b2f36] text-gray-300 px-4 py-1.5 rounded hover:bg-[#2b2f36] hover:text-white transition-colors whitespace-nowrap"
                           >
-                            查看
+                            详情
                           </button>
-                          <button
-                            onClick={() => setCopyTrader(trader)}
-                            className="text-sm font-medium bg-[#ff6c22] text-white px-4 py-1.5 rounded hover:bg-[#e85b17] transition-colors whitespace-nowrap"
-                          >
-                            跟单
-                          </button>
+                          {activeTab !== "copies" && (
+                            <button
+                              onClick={() => setCopyTrader(trader)}
+                              className="text-sm font-medium bg-[#ff6c22] text-white px-4 py-1.5 rounded hover:bg-[#e85b17] transition-colors whitespace-nowrap"
+                            >
+                              跟单
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -743,13 +880,68 @@ export function LeaderboardPage({ onBack }: { onBack: () => void }) {
       <TraderReviewModal
         isOpen={!!selectedTrader}
         onClose={() => setSelectedTrader(null)}
-        trader={selectedTrader}
+        trader={
+          selectedTrader
+            ? activeTab === "copies"
+              ? (filteredTraders.find(t => t.address === selectedTrader.address) || selectedTrader)
+              : (traders.find(t => t.address === selectedTrader.address) || selectedTrader)
+            : null
+        }
+        onToggleFavorite={toggleFavorite}
+        isCopyDetail={activeTab === "copies"}
+        onStopCopy={async (address) => {
+          const token = localStorage.getItem("token");
+          if (!token) return;
+          try {
+            const res = await fetch("/api/copy-trades/stop", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ address: selectedTrader?.fullAddress || address })
+            });
+            if (res.ok) {
+              setCopiedData(prev => prev.filter(c => c.address !== address && c.address !== (selectedTrader?.fullAddress || "")));
+            } else {
+              const err = await res.json();
+              alert("退出跟单失败：" + (err.error || "未知错误"));
+            }
+          } catch (e) {
+            console.error(e);
+            alert("退出跟单时发生错误");
+          }
+        }}
       />
 
       {copyTrader && (
         <CopyTradeModal
           trader={copyTrader}
           onClose={() => setCopyTrader(null)}
+          onSuccess={() => {
+            // After successful API call in modal, refetch data here
+            async function fetchCopyTrades() {
+              const token = localStorage.getItem("token");
+              if (!token) return;
+              try {
+                const res = await fetch("/api/copy-trades", {
+                  headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setCopiedData(data.map((c: any) => ({
+                    address: c.address,
+                    marginAmount: c.marginAmount,
+                    nominalValue: c.marginAmount * 1 // Rough estimate
+                  })));
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            fetchCopyTrades();
+            setActiveTab("copies");
+          }}
         />
       )}
     </div>
