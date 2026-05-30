@@ -154,9 +154,9 @@ export function CopyTradeModal({
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden min-h-0">
+          <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
             {/* Left: Configuration */}
-            <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329] md:overflow-y-auto min-h-0 flex-shrink-0 md:flex-shrink">
+            <div className="w-full md:w-1/2 p-6 space-y-6 border-b md:border-b-0 md:border-r border-[#2b2f36] bg-[#1e2329] md:overflow-y-auto">
               
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-white font-medium pb-2 border-b border-[#2b2f36]">
@@ -260,7 +260,7 @@ export function CopyTradeModal({
             </div>
 
             {/* Right: Simulation preview */}
-            <div className="w-full md:w-1/2 p-6 flex flex-col min-h-0 md:overflow-hidden bg-[#161a1e] flex-shrink-0 md:flex-shrink">
+            <div className="w-full md:w-1/2 p-6 flex flex-col bg-[#161a1e] h-auto md:h-full">
               <div className="mb-4 flex-shrink-0">
                 <h4 className="text-white font-medium text-sm">建仓结构预览</h4>
                 <p className="text-xs text-gray-500 mt-1">
@@ -268,7 +268,7 @@ export function CopyTradeModal({
                 </p>
               </div>
 
-              <div className="flex-1 overflow-y-auto min-h-0 max-h-[40vh] md:max-h-[50vh] space-y-3 pr-2 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#2b2f36] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#3a3f4a]">
+              <div className="flex-1 overflow-y-auto min-h-0 max-h-[40vh] md:max-h-none space-y-3 pr-2 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#2b2f36] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#3a3f4a]">
                 {loadingPositions ? (
                   <div className="flex flex-col items-center justify-center py-10 space-y-3">
                     <div className="w-6 h-6 border-2 border-[#ff6c22]/30 border-t-[#ff6c22] rounded-full animate-spin"></div>
