@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, ExternalLink, Key, Lock, Eye, EyeOff, ShieldCheck, Activity } from "lucide-react";
+import { X, ExternalLink, Key, Lock, Eye, EyeOff, ShieldCheck, Activity, User } from "lucide-react";
 import { Trader } from "../LeaderboardPage";
 
 interface CopyTradeModalProps {
@@ -134,8 +134,8 @@ export function CopyTradeModal({
           {/* Header */}
           <div className="flex items-center justify-between p-5 border-b border-[#2b2f36] bg-[#161a1e] sticky top-0 z-10">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6c22] to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                {trader.address.charAt(2)}
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#ff6c22] to-orange-600 flex items-center justify-center text-white shadow-lg">
+                <User size={20} />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -174,7 +174,7 @@ export function CopyTradeModal({
                       type="text"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-9 px-4 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
+                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
                       placeholder="输入您的 OKX API Key"
                     />
                   </div>
@@ -190,7 +190,7 @@ export function CopyTradeModal({
                       type={showSecret ? "text" : "password"}
                       value={apiSecret}
                       onChange={(e) => setApiSecret(e.target.value)}
-                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-9 pr-10 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
+                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-10 pr-10 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
                       placeholder="输入您的 OKX Secret Key"
                     />
                     <button 
@@ -212,7 +212,7 @@ export function CopyTradeModal({
                       type={showSecret ? "text" : "password"}
                       value={passphrase}
                       onChange={(e) => setPassphrase(e.target.value)}
-                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-9 px-4 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
+                      className="w-full bg-[#111419] border border-[#2b2f36] text-white text-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-[#ff6c22] transition-colors"
                       placeholder="输入 API Passphrase"
                     />
                   </div>
@@ -234,7 +234,7 @@ export function CopyTradeModal({
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-[#111419] border border-[#2b2f36] text-white rounded-lg px-4 py-3 font-mono focus:outline-none focus:border-[#ff6c22] transition-colors"
+                      className="w-full bg-[#111419] border border-[#2b2f36] text-white rounded-lg pl-4 pr-16 py-3 font-mono focus:outline-none focus:border-[#ff6c22] transition-colors"
                       placeholder="例如: 1000"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500 font-medium">
