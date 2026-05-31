@@ -236,7 +236,7 @@ async function startServer() {
     console.log(`Server running on http://localhost:${PORT}`);
     
     // Start background worker for copy trading
-    runCopyTradeWorker().catch(e => console.error("Worker failed:", e));
+    // runCopyTradeWorker().catch(e => console.error("Worker failed:", e));
   });
 }
 
