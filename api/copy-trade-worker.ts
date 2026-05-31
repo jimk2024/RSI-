@@ -124,7 +124,7 @@ export async function syncOkxPositions(trade: any, hlPosMap: Record<string, any>
       
       // Calculate target nominal value for this copiers position
       const ratio = hlPos.positionValue / accountValue;
-      const targetNominalValue = ratio * configuredMargin * hlPos.leverage;
+      const targetNominalValue = ratio * configuredMargin;
 
       // Find current okx position for this symbol
       const currentPos = okxPositionsData.find((p: any) => p.symbol === symbol);
